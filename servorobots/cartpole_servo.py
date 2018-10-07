@@ -15,6 +15,7 @@ from gym.utils import seeding
 import numpy as np
 import time
 import subprocess
+# See user manual https://usermanual.wiki/Document/pybullet20quickstart20guide.479068914.pdf
 import pybullet as p
 import pybullet_data
 from pkg_resources import parse_version
