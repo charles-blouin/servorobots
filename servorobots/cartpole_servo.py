@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 
 class CartPoleServoEnv(gym.Env):
 
+# parameter is passed when the environment is registered: https://github.com/openai/gym/issues/748
   def __init__(self, renders=False):
     # start the bullet physics server
     self._renders = renders
@@ -41,7 +42,7 @@ class CartPoleServoEnv(gym.Env):
           np.finfo(np.float32).max])
     action_high = np.array([0.1])
 
-    self.action_space = spaces.Discrete(9)
+    self.action_space = spaces.Box(low=-5, high=5, shape=(1,))
     self.observation_space = spaces.Box(-observation_high, observation_high)
 
     self.theta_threshold_radians = 1
@@ -60,20 +61,21 @@ class CartPoleServoEnv(gym.Env):
 
   def _step(self, action):
     p.stepSimulation()
-    time.sleep(self.timeStep)
+    if self._renders:
+        time.sleep(self.timeStep)
     self.state = p.getJointState(self.cartpole, 1)[0:2] + p.getJointState(self.cartpole, 0)[0:2]
     theta, theta_dot, x, x_dot = self.state
 
     dv = 0.1
-    deltav = [-10.*dv,-5.*dv, -2.*dv, -0.1*dv, 0, 0.1*dv, 2.*dv,5.*dv, 10.*dv][action]
 
-    p.setJointMotorControl2(self.cartpole, 0, p.VELOCITY_CONTROL, targetVelocity=(deltav + self.state[3]))
+
+    p.setJointMotorControl2(self.cartpole, 0, p.VELOCITY_CONTROL, targetVelocity=action)
 
     done =  x < -self.x_threshold \
                 or x > self.x_threshold \
                 or theta < -self.theta_threshold_radians \
                 or theta > self.theta_threshold_radians
-    reward = 1.0 - math.fabs(theta_dot)*0.1 - math.fabs(theta) - math.fabs(x)*0.0
+    reward = 1.5 - math.fabs(theta_dot)*0.1 - math.fabs(theta) - math.fabs(x)*0.05
 
     return np.array(self.state), reward, done, {}
 
@@ -81,8 +83,8 @@ class CartPoleServoEnv(gym.Env):
 #    print("-----------reset simulation---------------")
     p.resetSimulation()
     self.cartpole = p.loadURDF(os.path.join(pybullet_data.getDataPath(),"cartpole.urdf"),[0,0,0])
-    if self._renders:
-        self.timeStep = 0.01
+
+    self.timeStep = 0.01
     p.setJointMotorControl2(self.cartpole, 1, p.VELOCITY_CONTROL, force=0)
     p.setGravity(0,0, -10)
     p.setTimeStep(self.timeStep)
