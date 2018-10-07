@@ -212,16 +212,10 @@ def main():
         logger.configure(format_strs=[])
         rank = MPI.COMM_WORLD.Get_rank()
 
-    model, env = train(args, extra_args)
-    env.close()
-
-    if args.save_path is not None and rank == 0:
-        save_path = osp.expanduser(args.save_path)
-        model.save(save_path)
-
     if args.play:
         logger.log("Running trained model")
-        env = build_env(args)
+        env_type, env_id = get_env_type(args.env)
+        env = gym.make(env_id)
         obs = env.reset()
         def initialize_placeholders(nlstm=128,**kwargs):
             return np.zeros((args.num_env or 1, 2*nlstm)), np.zeros((1))
@@ -236,6 +230,15 @@ def main():
                 obs = env.reset()
 
         env.close()
+    else:
+        model, env = train(args, extra_args)
+        env.close()
+
+        if args.save_path is not None and rank == 0:
+            save_path = osp.expanduser(args.save_path)
+            model.save(save_path)
+
+
 
 if __name__ == '__main__':
     main()

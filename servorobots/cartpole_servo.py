@@ -25,10 +25,6 @@ import time
 logger = logging.getLogger(__name__)
 
 class CartPoleServoEnv(gym.Env):
-  metadata = {
-    'render.modes': ['human', 'rgb_array'],
-    'video.frames_per_second' : 50
-  }
 
   def __init__(self, renders=False):
     # start the bullet physics server
@@ -85,7 +81,8 @@ class CartPoleServoEnv(gym.Env):
 #    print("-----------reset simulation---------------")
     p.resetSimulation()
     self.cartpole = p.loadURDF(os.path.join(pybullet_data.getDataPath(),"cartpole.urdf"),[0,0,0])
-    self.timeStep = 0.00
+    if self._renders:
+        self.timeStep = 0.01
     p.setJointMotorControl2(self.cartpole, 1, p.VELOCITY_CONTROL, force=0)
     p.setGravity(0,0, -10)
     p.setTimeStep(self.timeStep)

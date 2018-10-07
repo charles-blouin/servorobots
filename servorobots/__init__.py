@@ -17,6 +17,15 @@ register(
     tags={ "pg_complexity": 1*1000000 },
     )
 
+register(
+    id='ServobulletInvertedPendulum-play-v0',
+    entry_point='servorobots:CartPoleServoEnv',
+    max_episode_steps=1000,
+    reward_threshold=950.0,
+    kwargs={'renders': True},
+    tags={ "pg_complexity": 1*1000000 },
+    )
+
 
 from servorobots.gym_pendulums import gym_InvertedPendulum
 from servorobots.cartpole_servo import CartPoleServoEnv
