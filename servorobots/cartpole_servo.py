@@ -80,7 +80,6 @@ class CartPoleServoEnv(gym.Env):
 
             if (k == p.B3G_UP_ARROW and (v & p.KEY_WAS_TRIGGERED)):
                 self.forward = 0.05
-                print('CCCCCCCCCCCCCCCC')
             if (k == p.B3G_UP_ARROW and (v & p.KEY_WAS_RELEASED)):
                 self.forward = 0.0
             if (k == p.B3G_DOWN_ARROW and (v & p.KEY_WAS_TRIGGERED)):
@@ -104,8 +103,9 @@ class CartPoleServoEnv(gym.Env):
                 or theta < -self.theta_threshold_radians \
                 or theta > self.theta_threshold_radians
     reward = 1 - math.fabs(x)/2.4 - math.fabs(self.acceleration)*0.02
-    print(math.fabs(x)/2.4)
-    #print(math.fabs(self.acceleration)*0.01)
+    if self._renders:
+        print(math.fabs(x)/2.4)
+        #print(math.fabs(self.acceleration)*0.01)
 
     return np.array(self.state), reward, done, {}
 
