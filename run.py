@@ -234,9 +234,12 @@ def main():
     args, unknown_args = arg_parser.parse_known_args()
     extra_args = parse_cmdline_kwargs(unknown_args)
     unknown_a = parse_unknown_args(unknown_args)
+
+    # The parser does not seem to accept new arguments, so I parse custom arguments here.
     print('extra_args')
     print(extra_args)
     if 'progress_dir' in extra_args:
+
         del extra_args['progress_dir']
     print('Deleted progress_dir. new extra_arg:')
     print(extra_args)
@@ -244,7 +247,7 @@ def main():
 
     if MPI is None or MPI.COMM_WORLD.Get_rank() == 0:
         rank = 0
-        logger.configure(dir='/home/charles/Desktop/progress_1')
+        logger.configure(dir=unknown_a['progress_dir'])
     else:
         logger.configure(format_strs=[])
         rank = MPI.COMM_WORLD.Get_rank()

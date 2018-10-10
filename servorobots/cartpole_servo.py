@@ -120,7 +120,7 @@ class CartPoleServoEnv(gym.Env):
     p.setTimeStep(self.timeStep)
     p.setRealTimeSimulation(0)
 
-    initialCartPos = self.np_random.uniform(low=-1, high=1, size=(1,))
+    initialCartPos = self.np_random.uniform(low=-2, high=2, size=(1,))
     initialAngle = self.np_random.uniform(low=-0.5, high=0.5, size=(1,))
     p.resetJointState(self.cartpole, 1, initialAngle)
     p.resetJointState(self.cartpole, 0, initialCartPos)
