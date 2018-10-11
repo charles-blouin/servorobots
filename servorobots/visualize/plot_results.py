@@ -109,7 +109,7 @@ def plot_curves(fig, xy_list, xaxis, yaxis, title):
     fig.canvas.mpl_connect('resize_event', lambda event: plt.tight_layout())
     plt.grid(True)
 
-def plot_results(dirs, num_timesteps, xaxis, yaxis, task_name):
+def plot_results(dirs, num_timesteps, xaxis, task_name):
     tslist = []
     for dir in dirs:
         ts = load_results(dir)
@@ -135,12 +135,13 @@ def main():
     parser.add_argument('--dirs', help='List of log directories', nargs = '*', default=['./log'])
     parser.add_argument('--num_timesteps', type=int, default=int(10e6))
     parser.add_argument('--xaxis', help = 'Varible on X-axis', default = X_TIMESTEPS)
-    parser.add_argument('--yaxis', help = 'Varible on Y-axis', default = Y_REWARD)
     parser.add_argument('--task_name', help = 'Title of plot', default = 'Breakout')
+    parser.add_argument('--show', help='Show the window', default=True)
     args = parser.parse_args()
     args.dirs = [os.path.abspath(dir) for dir in args.dirs]
-    plot_results(args.dirs, args.num_timesteps, args.xaxis, args.yaxis, args.task_name)
-    plt.show()
+    plot_results(args.dirs, args.num_timesteps, args.xaxis, args.task_name)
+    if args.show:
+        plt.show()
 
 if __name__ == '__main__':
     main()
