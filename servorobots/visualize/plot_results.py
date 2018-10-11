@@ -1,7 +1,7 @@
 # From baselines.bench.monitor.py. Here so the client outside docker does not need to install baselines.
 # Only pandas, tkinter (sudo apt-get install python3-tk), numpy, matplotlib.
 # cd ~/custom_roboschool/servorobots/servorobots/visualize
-# python3 plot_results.py --dirs /home/charles/Desktop/progress_1 --yaxis='timesteps'
+# python3 plot_results.py --dirs /progress_1
 from glob import glob
 import os.path as osp
 import json
@@ -136,12 +136,18 @@ def main():
     parser.add_argument('--num_timesteps', type=int, default=int(10e6))
     parser.add_argument('--xaxis', help = 'Varible on X-axis', default = X_TIMESTEPS)
     parser.add_argument('--task_name', help = 'Title of plot', default = 'Breakout')
-    parser.add_argument('--show', help='Show the window', default=True)
+    parser.add_argument('--show', help="Show the window", default = True, dest='show', action='store_true')
+    parser.add_argument('--no-show', help="Don't show the window", dest='show', action='store_false')
+    parser.add_argument('--save_dir', help='Show the window')
     args = parser.parse_args()
     args.dirs = [os.path.abspath(dir) for dir in args.dirs]
     plot_results(args.dirs, args.num_timesteps, args.xaxis, args.task_name)
     if args.show:
+        print('showing plot')
         plt.show()
+    if args.save_dir is not None:
+        plt.savefig(args.save_dir + '/results.png')
+
 
 if __name__ == '__main__':
     main()
