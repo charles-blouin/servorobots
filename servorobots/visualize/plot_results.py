@@ -139,6 +139,7 @@ def main():
     parser.add_argument('--show', help="Show the window", default = True, dest='show', action='store_true')
     parser.add_argument('--no-show', help="Don't show the window", dest='show', action='store_false')
     parser.add_argument('--save_dir', help='Show the window')
+    parser.add_argument('--format', help='png, pdf (+ what is supported by matplotlib)', default='png')
     args = parser.parse_args()
     args.dirs = [os.path.abspath(dir) for dir in args.dirs]
     plot_results(args.dirs, args.num_timesteps, args.xaxis, args.task_name)
@@ -146,7 +147,7 @@ def main():
         print('showing plot')
         plt.show()
     if args.save_dir is not None:
-        plt.savefig(args.save_dir + '/results.png')
+        plt.savefig(args.save_dir + '/results.' + args.format)
 
 
 if __name__ == '__main__':
