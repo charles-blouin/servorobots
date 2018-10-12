@@ -28,7 +28,7 @@ cd ..
 me=`basename "$0"`$version
 result_dir=results/${me}
 
-python3 run.py --alg=ppo2 --env=ServobulletInvertedPendulum-v0 --network=mlp2x32 --num_timesteps=5e6 \
+python3 run.py --alg=ppo2 --env=ServobulletInvertedPendulum-v0 --network=mlp2x32 --num_timesteps=2e6 \
 --save_interval=1 --num_env=32 \
 --save_path results/${me}/save/save \
 --nsteps=2048 \

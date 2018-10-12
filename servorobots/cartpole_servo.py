@@ -54,6 +54,7 @@ class CartPoleServoEnv(gym.Env):
     self._configure()
     self.offset_command = 0  # For keyboard control, the offset to zero desired.
     self.last_velocity = 0  # to compute acceleration
+    self.last_acceleration = 0 # to compute jerk
 
   def _configure(self, display=None):
     self.display = display
@@ -92,6 +93,8 @@ class CartPoleServoEnv(gym.Env):
     theta, theta_dot, x, x_dot = p.getJointState(self.cartpole, 1)[0:2] + p.getJointState(self.cartpole, 0)[0:2]
     self.acceleration = action[0] - self.last_velocity
     self.last_velocity = action[0]
+    self.jerk = self.acceleration - self.last_acceleration
+    self.last_acceleration = self.acceleration
     x = x + self.offset_command
     self.state = (theta, theta_dot, x, x_dot)
 
@@ -102,10 +105,11 @@ class CartPoleServoEnv(gym.Env):
                 or x > self.x_threshold \
                 or theta < -self.theta_threshold_radians \
                 or theta > self.theta_threshold_radians
-    reward = 1 - math.fabs(x)/2.4 - math.fabs(self.acceleration)*0.02
+    reward = 1 - math.fabs(x)/2.4 - math.fabs(self.jerk)/1.5
     if self._renders:
-        print(math.fabs(x)/2.4)
-        #print(math.fabs(self.acceleration)*0.01)
+        #print(math.fabs(x)/2.4)
+        #print(math.fabs(self.acceleration)*1)
+        print(self.jerk)
 
     return np.array(self.state), reward, done, {}
 
