@@ -7,6 +7,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow as tf
 import sys
 from collections import defaultdict
+import time
 import servorobots
 import servorobots.network.mlp_type
 
@@ -77,8 +78,7 @@ class ZooPolicyTensorflow(object):
 def demo_run():
     config = tf.ConfigProto(
         inter_op_parallelism_threads=1,
-        intra_op_parallelism_threads=1,
-        device_count = { "GPU": 0 } )
+        intra_op_parallelism_threads=1)
     sess = tf.InteractiveSession(config=config)
 
     _game_envs = defaultdict(set)
@@ -98,8 +98,10 @@ def demo_run():
         obs = env.reset()
 
         while 1:
+            start = time.time()
             a = pi.act(obs, env)
-
+            end = time.time()
+            print(end-start)
             obs, r, done, _ = env.step(a)
 
             score += r
