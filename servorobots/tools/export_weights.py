@@ -1,10 +1,11 @@
 # Thanks to peabody124 and olegklimov https://github.com/openai/roboschool/issues/44
+# see also https://github.com/openai/baselines/issues/597
 import joblib
 import tensorflow as tf
 import os
 import pdb;
 
-def export_weight(file_name_in='saveExample', file_name_out='model.weights'):
+def export_weight(file_name_in='saveExample', file_name_out='cartpole_simple.weights'):
 
     sess = tf.Session()
     variables = tf.trainable_variables()
@@ -28,8 +29,8 @@ def export_weight(file_name_in='saveExample', file_name_out='model.weights'):
     str +=  "b0" + " = np.array(" + recursive_np_array_print(loaded_params['ppo2_model/pi/mlp_fc0/b:0'], []) + ")\n"
     str +=  "w1" + " = np.array(" + recursive_np_array_print(loaded_params['ppo2_model/pi/mlp_fc1/w:0'], []) + ")\n"
     str +=  "b1" + " = np.array(" + recursive_np_array_print(loaded_params['ppo2_model/pi/mlp_fc1/b:0'], []) + ")\n"
-    str +=  "wf" + " = np.array(" + recursive_np_array_print(loaded_params['ppo2_model/vf/w:0'], []) + ")\n"
-    str +=  "bf" + " = np.array(" + recursive_np_array_print(loaded_params['ppo2_model/vf/b:0'], []) + ")\n"
+    str +=  "wf" + " = np.array(" + recursive_np_array_print(loaded_params['ppo2_model/pi/w:0'], []) + ")\n"
+    str +=  "bf" + " = np.array(" + recursive_np_array_print(loaded_params['ppo2_model/pi/b:0'], []) + ")\n"
 
 
     file = open(file_name_out, "w")
@@ -43,3 +44,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
