@@ -1,6 +1,6 @@
 # From baselines.bench.monitor.py. Here so the client outside docker does not need to install baselines.
 # Only pandas, tkinter (sudo apt-get install python3-tk), numpy, matplotlib.
-# cd ~/custom_roboschool/servorobots/servorobots/visualize
+# cd ~/custom_roboschool/servorobots/servorobots/tools
 # python3 plot_results.py --dirs /progress_1
 from glob import glob
 import os.path as osp
