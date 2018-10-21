@@ -80,9 +80,9 @@ class QuadcopterEnv(gym.Env):
                 # print(self.offset_command)
                 #print(keys)
 
-        # p.getJointState(self.quad, 0)
 
         reward = 1
+        p.applyExternalTorque(self.quad, -1, [0, 0, 0.0001], p.LINK_FRAME)
         #if self._renders:
             #print(math.fabs(x)/2.4)
             #print(math.fabs(self.acceleration)*1)
@@ -96,10 +96,13 @@ class QuadcopterEnv(gym.Env):
     def _reset(self):
     #    print("-----------reset simulation---------------")
         p.resetSimulation()
-        self.quad = p.loadURDF(os.path.join(currentdir, "quad.urdf"),[0,0,0])
+        self.quad = p.loadURDF(os.path.join(currentdir, "quad.urdf"),[0,0,0], flags=p.URDF_USE_INERTIA_FROM_FILE)
 
         self.timeStep = 0.01
-        p.setGravity(0,0, -10)
+        p.setGravity(0,0, 0)
+        # Default 0.04 for linear and angular damping.
+        # p.changeDynamics(self.quad, -1, linearDamping=1)
+        # p.changeDynamics(self.quad, -1, angularDamping=1)
         p.setTimeStep(self.timeStep)
         p.setRealTimeSimulation(0)
 
@@ -109,12 +112,11 @@ class QuadcopterEnv(gym.Env):
         # p.resetJointState(self.quad, 0, initialCartPos)
 
 
+
         world_pos, world_ori = p.getBasePositionAndOrientation(self.quad)
         world_vel, world_rot_vel = p.getBaseVelocity(self.quad)
-        print(type(world_vel))
 
         self.state = world_pos + world_ori + world_vel + world_rot_vel
-        print(self.state)
 
         return np.array(self.state)
 
