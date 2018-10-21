@@ -38,9 +38,10 @@ class QuadcopterEnv(gym.Env):
 
         observation_dim = 13
         high_obs = np.ones([observation_dim])
-        self.observation_space = spaces.Box(-high_obs, high_obs)
+        self.observation_space = spaces.Box(high_obs*0, high_obs*1.5)
 
-        # Thrust, torque in NED (roll, pitch, yaw)
+        # Thrust, torque in NWU (roll, pitch, yaw). The Pixhawk is in NED, careful!
+        # -1 is not thrust, + 1 is 1 g acceleration
         action_dim = 4
         act_high = np.ones([action_dim])
         self.action_space = spaces.Box(-act_high, act_high)
@@ -82,29 +83,64 @@ class QuadcopterEnv(gym.Env):
 
 
         reward = 1
-        p.applyExternalTorque(self.quad, -1, [0, 0, 0.0001], p.LINK_FRAME)
+
         #if self._renders:
             #print(math.fabs(x)/2.4)
             #print(math.fabs(self.acceleration)*1)
         world_pos, world_ori = p.getBasePositionAndOrientation(self.quad)
         world_vel, world_rot_vel = p.getBaseVelocity(self.quad)
+
+        # To obtain local rot_vel
+        _, inverse_ori = p.invertTransform([0,0,0], world_ori)
+
+        local_rot_vel, _ = p.multiplyTransforms([0,0,0], inverse_ori, world_rot_vel, [0,0,0,1])
+        desired_rot_vel = [0, 1, 0]
+        rot_error = np.asarray(local_rot_vel) - np.asarray(desired_rot_vel)
+
+        # print("World: " + str(world_rot_vel))
+
+        # print("Local: " + str(local_rot_vel))
+        thrust = self.zero_thrust # + action[0] * self.zero_thrust
+        print(thrust)
+
+
+
+
+        p.applyExternalTorque(self.quad, -1, -rot_error*0.1, p.LINK_FRAME)
+        p.applyExternalForce(self.quad, -1, [0, 0, -thrust], [0, 0, 0], p.LINK_FRAME)
+
         self.state =  world_pos + world_ori + world_vel + world_rot_vel
-        print(self.state)
+        # print(self.state)
         done = 0
         return np.array(self.state), reward, done, {}
 
     def _reset(self):
     #    print("-----------reset simulation---------------")
         p.resetSimulation()
-        self.quad = p.loadURDF(os.path.join(currentdir, "quad.urdf"),[0,0,0], flags=p.URDF_USE_INERTIA_FROM_FILE)
+        # see https://github.com/bulletphysics/bullet3/issues/1934 to load multiple colors
+        self.quad = p.loadURDF(os.path.join(currentdir, "quad.urdf"),[0,0,0.1], [0.7071, 0, 0, 0.7071], flags=p.URDF_USE_INERTIA_FROM_FILE)
+
+        filename = os.path.join(pybullet_data.getDataPath(), "plane_stadium.sdf")
+        self.ground_plane_mjcf = p.loadSDF(filename)
+        # filename = os.path.join(pybullet_data.getDataPath(),"stadium_no_collision.sdf")
+        # self.ground_plane_mjcf = self._p.loadSDF(filename)
+        #
+        for i in self.ground_plane_mjcf:
+            p.changeDynamics(i, -1, lateralFriction=0.8, restitution=0.5)
+            p.changeVisualShape(i, -1, rgbaColor=[1, 1, 1, 0.8])
 
         self.timeStep = 0.01
-        p.setGravity(0,0, 0)
+        self.gravity = 0 #-9.8
+        p.setGravity(0,0, self.gravity)
         # Default 0.04 for linear and angular damping.
         # p.changeDynamics(self.quad, -1, linearDamping=1)
         # p.changeDynamics(self.quad, -1, angularDamping=1)
         p.setTimeStep(self.timeStep)
         p.setRealTimeSimulation(0)
+
+        info = p.getDynamicsInfo(self.quad, -1)
+        self.mass = info[0]
+        self.zero_thrust = self.mass*self.gravity
 
         initialCartPos = self.np_random.uniform(low=-2, high=2, size=(1,))
         initialAngle = self.np_random.uniform(low=-0.5, high=0.5, size=(1,))
