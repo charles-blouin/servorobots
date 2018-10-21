@@ -21,8 +21,6 @@ import pybullet_data
 from pkg_resources import parse_version
 
 
-import time
-
 logger = logging.getLogger(__name__)
 
 class CartPoleServoEnv(gym.Env):

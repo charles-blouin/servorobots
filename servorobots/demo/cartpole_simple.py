@@ -98,10 +98,10 @@ def demo_run():
         obs = env.reset()
 
         while 1:
-            start = time.time()
+            # start = time.time()
             a = pi.act(obs, env)
-            end = time.time()
-            print(end-start)
+            # end = time.time()
+            # print(end-start)
             obs, r, done, _ = env.step(a)
 
             score += r
