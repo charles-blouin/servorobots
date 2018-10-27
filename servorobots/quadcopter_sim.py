@@ -22,6 +22,24 @@ from pkg_resources import parse_version
 
 logger = logging.getLogger(__name__)
 
+class qt:
+    def q_mult(q1, q2):
+        x1, y1, z1, w1 = q1
+        x2, y2, z2, w2 = q2
+        w = w1 * w2 - x1 * x2 - y1 * y2 - z1 * z2
+        x = w1 * x2 + x1 * w2 + y1 * z2 - z1 * y2
+        y = w1 * y2 + y1 * w2 + z1 * x2 - x1 * z2
+        z = w1 * z2 + z1 * w2 + x1 * y2 - y1 * x2
+        return x, y, z, w
+
+    def q_conjugate(q):
+        x, y, z, w = q
+        return (-x, -y, -z, w)
+
+    def qv_mult(q1, v1):
+        q2 = v1 + (0.0,)
+        return qt.q_mult(qt.q_mult(q1, q2), qt.q_conjugate(q1))[0:3]
+
 class QuadcopterEnv(gym.Env):
     def __init__(self, renders=False):
         self._renders = renders
@@ -29,8 +47,8 @@ class QuadcopterEnv(gym.Env):
             p.connect(p.GUI)
         else:
             p.connect(p.DIRECT)
-
-    # Quadcopter observation:
+        self._seed()
+        # Quadcopter observation:
         # Quaternion (4)
         # Angular velocity (3), Local frame
         # Position (3)
@@ -55,6 +73,8 @@ class QuadcopterEnv(gym.Env):
 
     def _step(self, action):
         p.stepSimulation()
+
+        # This is to controll manually the quad.
         if self._renders:
             time.sleep(self.timeStep)
             keys = p.getKeyboardEvents()
@@ -93,53 +113,22 @@ class QuadcopterEnv(gym.Env):
         # To obtain local rot_vel
         _, inverse_ori = p.invertTransform([0,0,0], world_ori)
 
-        def q_mult(q1, q2):
-            x1, y1, z1, w1 = q1
-            x2, y2, z2, w2 = q2
-            w = w1 * w2 - x1 * x2 - y1 * y2 - z1 * z2
-            x = w1 * x2 + x1 * w2 + y1 * z2 - z1 * y2
-            y = w1 * y2 + y1 * w2 + z1 * x2 - x1 * z2
-            z = w1 * z2 + z1 * w2 + x1 * y2 - y1 * x2
-            return x, y, z, w
 
-        def q_conjugate(q):
-            x, y, z, w = q
-            return (-x, -y, -z, w)
+        # Expressing world rotation in quadcopter frame coordinate, required for PD controller.
+        local_rot_vel = qt.qv_mult(qt.q_conjugate(world_ori), world_rot_vel)
+        desired_rot_vel = np.array(action[1:4])
 
-        def qv_mult(q1, v1):
-            q2 = v1 + (0.0,)
-            return q_mult(q_mult(q1, q2), q_conjugate(q1))[0:3]
+        rot_error = np.asarray(local_rot_vel) - desired_rot_vel
 
-        # print(world_rot_vel)
-        local_rot_vel = qv_mult(q_conjugate(world_ori), world_rot_vel)
-
-        # local_rot_vel, _ = p.multiplyTransforms([0,0,0], world_ori, world_rot_vel, [0,0,0,1])
-
-        desired_rot_vel = np.array([0, 0, 1])
-        desired_rot_vel_world, _ = p.multiplyTransforms([0, 0, 0], inverse_ori, desired_rot_vel, [0, 0, 0, 1])
-        print(local_rot_vel)
-        # print(local_rot_vel)
-        tr = np.asarray(p.getMatrixFromQuaternion(world_ori))
-        matrix_rot = np.reshape(tr,(3,3))
-        # print(np.transpose(np.asarray(world_rot_vel)))
-        #print(matrix_rot)
-        # local_rot_vel = np.matmul(matrix_rot,  np.asarray(world_rot_vel))
-        # print(local_rot_vel)
-
-        # local_rot_vel = qv_mult(world_ori, world_rot_vel)
-
-        rot_error = np.asarray(local_rot_vel) - np.transpose(np.asarray(desired_rot_vel))
-        # rot_error = np.asarray(world_rot_vel) - np.asarray(desired_rot_vel_world)
-        # print("World: " + str(world_rot_vel))
-
-        # print("Local: " + str(local_rot_vel))
-        thrust = self.zero_thrust # + action[0] * self.zero_thrust
+        thrust = (action[0] + 1) * self.zero_thrust
 
 
+        p.applyExternalTorque(self.quad, -1, -rot_error*0.02, p.WORLD_FRAME)
+        p.applyExternalForce(self.quad, -1, [0, 0, thrust], [0, 0, 0], p.LINK_FRAME)
+        contacts = p.getContactPoints()
 
-
-        p.applyExternalTorque(self.quad, -1, -rot_error*0.01, p.WORLD_FRAME)
-        p.applyExternalForce(self.quad, -1, [0, 0, -thrust], [0, 0, 0], p.WORLD_FRAME)
+        if contacts != ():
+            done = 1
 
         self.state =  world_pos + world_ori + world_vel + world_rot_vel
         # print(self.state)
@@ -150,7 +139,12 @@ class QuadcopterEnv(gym.Env):
     #    print("-----------reset simulation---------------")
         p.resetSimulation()
         # see https://github.com/bulletphysics/bullet3/issues/1934 to load multiple colors
-        self.quad = p.loadURDF(os.path.join(currentdir, "quad.urdf"),[0,0,0.5], [0, 0.7071, 0, 0.7071], flags=p.URDF_USE_INERTIA_FROM_FILE)
+
+        rand_ori = self.np_random.uniform(low=-1, high=1, size=(4,))
+        rand_ori = rand_ori/np.linalg.norm(rand_ori)
+
+
+        self.quad = p.loadURDF(os.path.join(currentdir, "quad.urdf"),[0,0,0.5], rand_ori, flags=p.URDF_USE_INERTIA_FROM_FILE)
 
         filename = os.path.join(pybullet_data.getDataPath(), "plane_stadium.sdf")
         self.ground_plane_mjcf = p.loadSDF(filename)
@@ -162,7 +156,7 @@ class QuadcopterEnv(gym.Env):
             p.changeVisualShape(i, -1, rgbaColor=[1, 1, 1, 0.8])
 
         self.timeStep = 0.01
-        self.gravity = 0 #-9.8
+        self.gravity = -9.8
         p.setGravity(0,0, self.gravity)
         # Default 0.04 for linear and angular damping.
         # p.changeDynamics(self.quad, -1, linearDamping=1)
@@ -172,7 +166,7 @@ class QuadcopterEnv(gym.Env):
 
         info = p.getDynamicsInfo(self.quad, -1)
         self.mass = info[0]
-        self.zero_thrust = self.mass*self.gravity
+        self.zero_thrust = -self.mass*self.gravity
 
         initialCartPos = self.np_random.uniform(low=-2, high=2, size=(1,))
         initialAngle = self.np_random.uniform(low=-0.5, high=0.5, size=(1,))
