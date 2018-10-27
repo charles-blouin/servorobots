@@ -126,13 +126,13 @@ class QuadcopterEnv(gym.Env):
         p.applyExternalTorque(self.quad, -1, -rot_error*0.02, p.WORLD_FRAME)
         p.applyExternalForce(self.quad, -1, [0, 0, thrust], [0, 0, 0], p.LINK_FRAME)
         contacts = p.getContactPoints()
-
+        done = 0
         if contacts != ():
             done = 1
 
         self.state =  world_pos + world_ori + world_vel + world_rot_vel
         # print(self.state)
-        done = 0
+
         return np.array(self.state), reward, done, {}
 
     def _reset(self):
@@ -142,9 +142,11 @@ class QuadcopterEnv(gym.Env):
 
         rand_ori = self.np_random.uniform(low=-1, high=1, size=(4,))
         rand_ori = rand_ori/np.linalg.norm(rand_ori)
+        rand_pos = self.np_random.uniform(low=-1, high=1, size=(3,))
+        #TODO Start with random vel
 
 
-        self.quad = p.loadURDF(os.path.join(currentdir, "quad.urdf"),[0,0,0.5], rand_ori, flags=p.URDF_USE_INERTIA_FROM_FILE)
+        self.quad = p.loadURDF(os.path.join(currentdir, "quad.urdf"),[0,0,0.5] + rand_pos, rand_ori, flags=p.URDF_USE_INERTIA_FROM_FILE)
 
         filename = os.path.join(pybullet_data.getDataPath(), "plane_stadium.sdf")
         self.ground_plane_mjcf = p.loadSDF(filename)
