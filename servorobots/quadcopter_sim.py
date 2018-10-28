@@ -48,6 +48,10 @@ class QuadcopterEnv(gym.Env):
         else:
             p.connect(p.DIRECT)
         self._seed()
+        self.lpf_rot_error = 0
+        self.angular_acc = np.array([0, 0, 0])
+        self.acc = np.array([0, 0, 0])
+        self.last_thrust = 0
         # Quadcopter observation:
         # Quaternion (4)
         # Angular velocity (3), Local frame
@@ -102,7 +106,7 @@ class QuadcopterEnv(gym.Env):
                 #print(keys)
 
 
-        reward = 1
+
 
         #if self._renders:
             #print(math.fabs(x)/2.4)
@@ -116,22 +120,36 @@ class QuadcopterEnv(gym.Env):
 
         # Expressing world rotation in quadcopter frame coordinate, required for PD controller.
         local_rot_vel = qt.qv_mult(qt.q_conjugate(world_ori), world_rot_vel)
-        desired_rot_vel = np.array(action[1:4])
+        desired_rot_vel = np.array(action[1:4]) * 5
 
         rot_error = np.asarray(local_rot_vel) - desired_rot_vel
-
+        self.lpf_rot_error = rot_error * 0.05 + self.lpf_rot_error * 0.95
         thrust = (action[0] + 1) * self.zero_thrust
 
+        torque = -rot_error*0.1
 
-        p.applyExternalTorque(self.quad, -1, -rot_error*0.02, p.WORLD_FRAME)
+        ang_power = np.sum(np.abs(np.multiply(torque, local_rot_vel)))
+
+        thrust_change = math.fabs((self.last_thrust - thrust))
+        p.applyExternalTorque(self.quad, -1, -rot_error*0.1, p.WORLD_FRAME)
         p.applyExternalForce(self.quad, -1, [0, 0, thrust], [0, 0, 0], p.LINK_FRAME)
         contacts = p.getContactPoints()
-        done = 0
-        if contacts != ():
-            done = 1
+
 
         self.state =  world_pos + world_ori + world_vel + world_rot_vel
         # print(self.state)
+
+        distance_from_center = np.linalg.norm(np.asarray(world_pos) - np.asarray([0, 0, 0.5]))
+        reward = 1 - distance_from_center *0.5 - ang_power * 0.1 - thrust_change * 0.02
+
+        # print(rot_error)
+        done = 0
+
+        if contacts != ():
+            done = 1
+
+        if distance_from_center > 1:
+            done = 1
 
         return np.array(self.state), reward, done, {}
 
@@ -140,9 +158,9 @@ class QuadcopterEnv(gym.Env):
         p.resetSimulation()
         # see https://github.com/bulletphysics/bullet3/issues/1934 to load multiple colors
 
-        rand_ori = self.np_random.uniform(low=-1, high=1, size=(4,))
+        rand_ori = self.np_random.uniform(low=-1, high=1, size=(4,)) + np.asarray([0,0,0,5])
         rand_ori = rand_ori/np.linalg.norm(rand_ori)
-        rand_pos = self.np_random.uniform(low=-1, high=1, size=(3,))
+        rand_pos = self.np_random.uniform(low=-0.5, high=0.5, size=(3,))
         #TODO Start with random vel
 
 
