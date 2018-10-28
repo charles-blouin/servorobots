@@ -52,12 +52,17 @@ class QuadcopterEnv(gym.Env):
         self.angular_acc = np.array([0, 0, 0])
         self.acc = np.array([0, 0, 0])
         self.last_thrust = 0
+        p.configureDebugVisualizer(p.COV_ENABLE_TINY_RENDERER, 0)
+        p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1)
+        self.dx = 0
+        self.speedX = 0
+        self.dy = 0
+        self.dz = 0
         # Quadcopter observation:
         # Quaternion (4)
         # Angular velocity (3), Local frame
         # Position (3)
         # Velocity (3), Local frame
-
         observation_dim = 13
         high_obs = np.ones([observation_dim])
         self.observation_space = spaces.Box(high_obs*0, high_obs*1.5)
@@ -85,13 +90,13 @@ class QuadcopterEnv(gym.Env):
             for k, v in keys.items():
 
                 if (k == p.B3G_RIGHT_ARROW and (v & p.KEY_WAS_TRIGGERED)):
-                    turn = -0.5
+                    self.speedX = 0.01
                 if (k == p.B3G_RIGHT_ARROW and (v & p.KEY_WAS_RELEASED)):
-                    turn = 0
+                    self.speedX = 0
                 if (k == p.B3G_LEFT_ARROW and (v & p.KEY_WAS_TRIGGERED)):
-                    turn = 0.5
+                    self.speedX = -0.01
                 if (k == p.B3G_LEFT_ARROW and (v & p.KEY_WAS_RELEASED)):
-                    turn = 0
+                    self.speedX = 0
 
                 if (k == p.B3G_UP_ARROW and (v & p.KEY_WAS_TRIGGERED)):
                     self.forward = 0.05
@@ -101,22 +106,20 @@ class QuadcopterEnv(gym.Env):
                     self.forward = -0.05
                 if (k == p.B3G_DOWN_ARROW and (v & p.KEY_WAS_RELEASED)):
                     self.forward = 0.0
+                self.dx = self.dx + self.speedX
                 #self.offset_command = self.offset_command + self.forward
-                # print(self.offset_command)
+                print(self.dx)
                 #print(keys)
-
-
-
-
+        if self._renders:
+            p.resetBasePositionAndOrientation(self.desired_pos_sphere, [self.dx, 0, 0], [0, 0, 0, 1])
         #if self._renders:
             #print(math.fabs(x)/2.4)
             #print(math.fabs(self.acceleration)*1)
         world_pos, world_ori = p.getBasePositionAndOrientation(self.quad)
+        world_pos_offset = tuple([world_pos[0] - self.dx]) + world_pos[1:3]
         world_vel, world_rot_vel = p.getBaseVelocity(self.quad)
         # world_rot_vel = (1, 0, 0)
         # To obtain local rot_vel
-        _, inverse_ori = p.invertTransform([0,0,0], world_ori)
-
 
         # Expressing world rotation in quadcopter frame coordinate, required for PD controller.
         local_rot_vel = qt.qv_mult(qt.q_conjugate(world_ori), world_rot_vel)
@@ -136,11 +139,11 @@ class QuadcopterEnv(gym.Env):
         contacts = p.getContactPoints()
 
 
-        self.state =  world_pos + world_ori + world_vel + world_rot_vel
+        self.state =  world_pos_offset + world_ori + world_vel + world_rot_vel
         # print(self.state)
 
         distance_from_center = np.linalg.norm(np.asarray(world_pos) - np.asarray([0, 0, 0.5]))
-        reward = 1 - distance_from_center *0.5 - ang_power * 0.1 - thrust_change * 0.02
+        reward = 1 - distance_from_center *0.5 - ang_power * 0.14 - thrust_change * 0.05
 
         # print(rot_error)
         done = 0
@@ -158,13 +161,18 @@ class QuadcopterEnv(gym.Env):
         p.resetSimulation()
         # see https://github.com/bulletphysics/bullet3/issues/1934 to load multiple colors
 
-        rand_ori = self.np_random.uniform(low=-1, high=1, size=(4,)) + np.asarray([0,0,0,5])
+        if self.render:
+            visualShapeId = p.createVisualShape(shapeType=p.GEOM_SPHERE, radius=0.1, rgbaColor=[1, 0, 0, 1],
+                            specularColor=[0.4, .4, 0])
+            self.desired_pos_sphere = p.createMultiBody(baseMass=0, baseInertialFramePosition=[0, 0, 0], baseVisualShapeIndex=visualShapeId)
+        rand_ori = self.np_random.uniform(low=-1, high=1, size=(4,)) + np.asarray([0,0,0,2])
         rand_ori = rand_ori/np.linalg.norm(rand_ori)
         rand_pos = self.np_random.uniform(low=-0.5, high=0.5, size=(3,))
         #TODO Start with random vel
 
 
         self.quad = p.loadURDF(os.path.join(currentdir, "quad.urdf"),[0,0,0.5] + rand_pos, rand_ori, flags=p.URDF_USE_INERTIA_FROM_FILE)
+
 
         filename = os.path.join(pybullet_data.getDataPath(), "plane_stadium.sdf")
         self.ground_plane_mjcf = p.loadSDF(filename)

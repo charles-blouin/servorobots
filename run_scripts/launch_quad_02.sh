@@ -37,7 +37,7 @@ else
     # Name of the current file + version
     result_dir=results/${me}
 
-    python3 run.py --alg=ppo2 --env=RCB_quadcopter-v0 --network=mlp2x32 --num_timesteps=2e5 \
+    python3 run.py --alg=ppo2 --env=RCB_quadcopter-v0 --network=mlp2x32 --num_timesteps=1e6 \
     --load_path results/launch_quad_01.sh/checkpoints/00492 \
     --save_interval=1 --num_env=4 \
     --save_path results/${me}/save/save \
