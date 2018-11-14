@@ -1,0 +1,109 @@
+Possible PPO configuration
+
+https://www.reddit.com/r/reinforcementlearning/comments/7ywilr/p_image_recommendation_with_ppo_and_tensorforce/
+
+Monitor tools
+nvidia-smi
+
+python3 openai_gym.py RoboschoolInvertedDoublePendulum-v1 -i roboschool -a configs/ppo.json -n configs/mlp2_network.json -e 20000 -m 500 --monitor /home/charles/video --monitor-video 100
+
+python3 openai_gym.py RoboschoolInvertedDoublePendulum-v1 -i roboschool -a configs/ppo.json -n configs/mlp2_network.json -e 20000 -m 500 --monitor /home/charles/doubleInvertedPendulum3/video --monitor-video 200 -s /home/charles/doubleInvertedPendulum3/save/save
+
+
+python3 openai_gym.py RoboschoolHalfCheetah-v1 -i roboschool -a configs/ppo.json -n configs/mlp2_network.json -e 30000 -m 600 --monitor /home/charles/RoboschoolHalfCheetah-v1_1/video --monitor-video 250 -s /home/charles/RoboschoolHalfCheetah-v1_1/save/save
+
+
+cd /home/charles/tensorforce_examples/robocat-pendulum
+
+python3 openai_gym.py RoboschoolHalfCheetah-v1 -i roboschool \
+-a configs/ppo.json -n configs/mlp2_network_64_64_32_relu.json \
+-e 30000 -m 800 \
+--monitor /home/charles/tensorforce_examples/robocat-pendulum/RoboschoolHalfCheetah-v1_3/video \
+--monitor-video 250 \
+-s /home/charles/tensorforce_examples/robocat-pendulum/RoboschoolHalfCheetah-v1_3/save/save \
+-l /home/charles/tensorforce_examples/robocat-pendulum/RoboschoolHalfCheetah-v1_2/save
+
+
+python3 openai_gym_async.py RoboschoolHalfCheetah-v1 \
+-a configs/ppo.json -n configs/mlp2_network.json \
+-e 30000 -m 600 \
+-W 3
+
+
+python3 openai_gym.py RoboschoolHalfCheetah-v1 -i roboschool \
+-a RoboschoolHalfCheetah-v1_4/ppo.json -n configs/mlp2_network_64_64_tanh.json \
+-e 30000 -m 800 \
+--monitor /home/charles/tensorforce_examples/robocat-pendulum/RoboschoolHalfCheetah-v1_4/video \
+--monitor-video 250 \
+-s /home/charles/tensorforce_examples/robocat-pendulum/RoboschoolHalfCheetah-v1_4/save/save \
+-l /home/charles/tensorforce_examples/robocat-pendulum/RoboschoolHalfCheetah-v1_3/save
+
+python3 ../openai_gym.py RoboschoolHalfCheetah-v1 -i roboschool \
+-a ppo.json -n mlp2_network_32_32_tanh.json \
+-e 150000 -m 500 \
+-se 500 \
+--monitor video \
+--monitor-video 500 \
+-s save2/save \
+-l /home/charles/tensorforce_examples/robocat-pendulum/RoboschoolHalfCheetah-v1_6/save
+
+###baselines###
+
+/home/charles/tensorforce_examples/baselines$ python3 -m baselines.run --alg=ppo2 --env=RoboschoolHalfCheetah-v1 --network=mlp --num_timesteps=1e6 --save_path=/home/charles/models_baselines/cheetah --save_interval=100000 --play --num_env=8
+
+/home/charles/tensorforce_examples/baselines$ 
+python3 -m baselines.run --alg=ppo2 --env=RoboschoolHalfCheetah-v1 --network=mlp --num_timesteps=1e7 --save_path=/home/charles/models_baselines/cheetah --save_interval=20000 --play --num_env=32 \
+--nsteps=512 \
+--lr=3e-4 \
+--noptepochs=15 \
+--nminibatches=32
+
+/home/charles/tensorforce_examples/baselines$ 
+python3 run.py --alg=ppo2 --env=RoboschoolHalfCheetah-v1 --network=mlp --num_timesteps=1e5 \
+--save_interval=20000 --play --num_env=32 \
+--nsteps=512 \
+--lr=3e-4 \
+--noptepochs=15 \
+--nminibatches=32
+
+
+/home/charles/tensorforce_examples/baselines$ 
+python3 run.py --alg=ppo2 --env=ServorobotsInvertedPendulum-v1 --network=mlp --num_timesteps=1e5 \
+--save_interval=20000 --play --num_env=32 \
+--nsteps=512 \
+--lr=3e-4 \
+--noptepochs=15 \
+--nminibatches=32
+
+python3 run.py --alg=ppo2 --env=CartPoleBulletEnv-v0 --network=mlp --num_timesteps=5e5 \
+--save_interval=20000 --num_env=32 \
+--save_path /home/charles/Desktop/saves/save \
+--nsteps=512 \
+--lr=3e-5 \
+--noptepochs=15 \
+--nminibatches=32
+
+python3 run.py --alg=ppo2 --env=CartPoleBulletEnv-v0 --network=mlp --num_timesteps=1e4 \
+--load_path /home/charles/Desktop/saves/save
+
+python3 run.py --alg=ppo2 --env=ServobulletInvertedPendulum-v0 --network=mlp --num_timesteps=5e5 \
+--save_interval=20000 --num_env=32 \
+--save_path /home/charles/Desktop/saves/save \
+--nsteps=512 \
+--lr=3e-5 \
+--noptepochs=15 \
+--nminibatches=32
+
+vf_coef: float                    value function loss coefficient in the optimization objective
+    max_grad_norm: float or None      gradient norm clipping coefficient
+    gamma: float                      discounting factor
+    lam: float                        advantage estimation discounting factor (lambda in the paper)
+    log_interval: int                 number of timesteps between logging events
+    nminibatches: int                 number of training minibatches per update. For recurrent policies,
+                                      should be smaller or equal than number of environments run in parallel.
+
+    cliprange: float or function      clipping range, constant or schedule function [0,1] -> R+ where 1 is beginning of the training
+                                      and 0 is the end of the training
+    save_interval: int                number of timesteps between saving events
+
+
