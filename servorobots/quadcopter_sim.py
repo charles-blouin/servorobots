@@ -21,6 +21,7 @@ import pybullet_data
 from pkg_resources import parse_version
 
 logger = logging.getLogger(__name__)
+gym.Env()
 
 class qt:
     def q_mult(q1, q2):
@@ -142,8 +143,13 @@ class QuadcopterEnv(gym.Env):
         self.state =  world_pos_offset + world_ori + world_vel + world_rot_vel
         # print(self.state)
 
+        touched_ground = 0
+
+        if contacts != ():
+            touched_ground = -100
+
         distance_from_center = np.linalg.norm(np.asarray(world_pos) - np.asarray([0, 0, 0.5]))
-        reward = 1 - distance_from_center *0.5 - ang_power * 0.14 - thrust_change * 0.05
+        reward = 1 - distance_from_center *0.5 - ang_power * 0.14 - thrust_change * 0.05 + touched_ground
 
         # print(rot_error)
         done = 0

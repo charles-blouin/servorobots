@@ -148,6 +148,7 @@ def main():
         plt.show()
     if args.save_dir is not None:
         plt.savefig(args.save_dir + '/results.' + args.format)
+        print('Saved plot in ' + args.save_dir + '/results.' + args.format)
 
 
 if __name__ == '__main__':
