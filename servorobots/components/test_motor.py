@@ -25,7 +25,7 @@ class MotorTest:
         p.setJointMotorControl2(self.wheel, 1, p.VELOCITY_CONTROL, targetVelocity=0, force=frictionForce)
         # apply a joint torque
         p.setJointMotorControl2(self.wheel, 1, p.TORQUE_CONTROL, force=jointTorque)
-
+        p.addUserDebugText("tip", [1.5, 0, 0.1], textColorRGB=[0, 0, 0], textSize=1)
         p.stepSimulation()
 
     def reset(self):
