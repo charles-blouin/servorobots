@@ -6,27 +6,76 @@ import pybullet as p
 import pybullet_data
 import time
 
-#class DCMotor:
+class GearedDcMotor:
+    def __init__(self, R, Kv, K_viscous):
+        # Motor internal resistance
+        self.R = R
+        self.Kv = Kv
+        self.K_viscous = K_viscous
+
+    def torque_from_voltage(self, Vin, omega):
+
+        # Torque output of the motor before gear
+        # Nm = V/Ohm / (rad/s/V) = I * V * s = W * s = Nm/s * s
+        torque_raw = (Vin - omega / self.Kv) / self.R / self.Kv
+        print(torque_raw)
+        # Kt = Kv
+        # Current = Torque * Kt = Torque * Kv
+        # A = Nm * (rad/s/V) = W*s / V / s = V * A * s / V / s = A
+        current = torque_raw * self.Kv
+
+        torque_friction = omega * self.K_viscous
+
+        torque = torque_raw # - torque_friction
+
+        # Motor current
+        return torque, current
 
 class MotorTest:
     def __init__(self):
         p.connect(p.GUI)
         self.timeStep = 0.01
         self.gravity = -9.8
+        self.time = 0
 
-        self.frictionId = p.addUserDebugParameter("jointFriction", 0, 20, 10)
+        self.voltageId = p.addUserDebugParameter("Input Voltage", 0, 20, 6)
+        self.frictionId = p.addUserDebugParameter("jointFriction", 0, 20, 0)
         self.torqueId = p.addUserDebugParameter("joint torque", 0, 20, 5)
 
+        self.motor_1 = GearedDcMotor(R=4, Kv=12, K_viscous=0.00)
+
+        self.display_joint_torque = p.addUserDebugText('NA', [1.5, 0, 0.1], textColorRGB=[0, 0, 0],
+                                                  textSize=1)
+        self.display_joint_current = p.addUserDebugText('NA', [1.5, 0, 0.3], textColorRGB=[0, 0, 0],
+                                                       textSize=1)
+        self.display_time = p.addUserDebugText('NA', [1.5, 0, 0.3], textColorRGB=[0, 0, 0],
+                                                        textSize=1)
+
     def step(self, action):
+        applied_Voltage = p.readUserDebugParameter(self.voltageId)
         frictionForce = p.readUserDebugParameter(self.frictionId)
         jointTorque = p.readUserDebugParameter(self.torqueId)
-        print(frictionForce)
+
+        # Calculate motor output torque and current
+        pos, vel, _, _ = p.getJointState(self.wheel, 1)
+        motor_torque, motor_current = self.motor_1.torque_from_voltage(applied_Voltage, vel)
+
+        # apply a joint torque from motor
+        p.setJointMotorControl2(self.wheel, 1, p.TORQUE_CONTROL, force=motor_torque)
+
         # set the joint friction
         p.setJointMotorControl2(self.wheel, 1, p.VELOCITY_CONTROL, targetVelocity=0, force=frictionForce)
-        # apply a joint torque
-        p.setJointMotorControl2(self.wheel, 1, p.TORQUE_CONTROL, force=jointTorque)
-        p.addUserDebugText("tip", [1.5, 0, 0.1], textColorRGB=[0, 0, 0], textSize=1)
+
+
+        # Display
+        p.addUserDebugText("Motor Torque: " + str(motor_torque), [1.2, 0, 0.1], textColorRGB=[0, 0, 0],
+                                                  textSize=1, replaceItemUniqueId=self.display_joint_torque)
+        p.addUserDebugText("Motor Current: " + str(motor_current), [1.2, 0, 0.3], textColorRGB=[0, 0, 0],
+                                                  textSize=1, replaceItemUniqueId=self.display_joint_current)
+        p.addUserDebugText("Time: " + str(self.time), [1.2, 0, 0.6], textColorRGB=[0, 0, 0],
+                           textSize=1, replaceItemUniqueId=self.display_time)
         p.stepSimulation()
+        self.time = self.time + self.timeStep
 
     def reset(self):
 
@@ -34,7 +83,7 @@ class MotorTest:
 
         # Loading the model and initial pose
         wheel_dir = os.path.join(currentdir, "motor_test_01.urdf")
-        self.wheel = p.loadURDF(wheel_dir)
+        self.wheel = p.loadURDF(wheel_dir, flags=p.URDF_USE_INERTIA_FROM_FILE)
 
         p.changeDynamics(self.wheel, -1, linearDamping=0, angularDamping=0)
         for j in range(p.getNumJoints(self.wheel)):
@@ -64,5 +113,5 @@ if __name__ == '__main__':
     m.reset()
 
     while 1:
-        time.sleep(0.01)
+        time.sleep(m.timeStep)
         m.step(1)
