@@ -7,14 +7,50 @@ import pybullet_data
 import time
 
 class GearedDcMotor:
-    def __init__(self, R, Kv, K_viscous, K_load):
+    def __init__(self, R, Kv, K_viscous, K_load, latency = 0, buffer_size=10):
         # Motor internal resistance
         self.R = R
         self.Kv = Kv
         self.K_viscous = K_viscous
         self.K_load = K_load
+        self.latency = latency
+        self.buffer_size = buffer_size
+        self.voltage_buffer = [0] * buffer_size
+        self.time_buffer = [0] + [1000] * (buffer_size-1)
+        self.latest_voltage_index = 1
+        self.motor_buffer_index = 0
 
-    def torque_from_voltage(self, Vin, omega):
+
+    def torque_from_voltage(self, Vin, omega, currentTime):
+
+        # Update the buffer
+        self.voltage_buffer[self.latest_voltage_index] = Vin
+        self.time_buffer[self.latest_voltage_index] = currentTime
+        self.latest_voltage_index = (self.latest_voltage_index  + 1) % self.buffer_size
+
+        # Look for the Vin command to send, taking into account latency.
+        motor_time = currentTime - self.latency
+        print('Current Time ' + str(currentTime))
+        print('Voltage Buffer ' + str(self.voltage_buffer))
+        print('Time Buffer ' + str(self.time_buffer))
+        print(self.motor_buffer_index)
+        # print(self.time_buffer[(self.motor_buffer_index + 1) % self.buffer_size] - motor_time)
+
+        # If the next time in the buffer is still before or at motor_time
+        while (self.time_buffer[(self.motor_buffer_index + 1) % self.buffer_size] - motor_time) <= 0.00001:
+            # Increase the index and check again
+
+            self.motor_buffer_index = (self.motor_buffer_index + 1) % self.buffer_size
+            # print(self.motor_buffer_index)
+
+        self.motor_buffer_index = (self.motor_buffer_index) % self.buffer_size
+        print(Vin)
+        if Vin != self.voltage_buffer[self.motor_buffer_index]:
+            print('error!')
+
+        # Most up to date voltage given latency
+        Vin = self.voltage_buffer[self.motor_buffer_index]
+
 
         # Torque output of the motor before gear
         # Nm = V/Ohm / (rad/s/V) = I * V * s = W * s = Nm/s * s
@@ -46,7 +82,6 @@ class GearedDcMotor:
         # K_load = (torque_raw - torque_friction)/torque_out - 1
         # K_load = ((Vin - omega / self.Kv) / self.R / self.Kv) - omega * self.K_viscous)/torque_out - 1
 
-        print(torque_out)
         # Motor current
         return torque_out, current
 
@@ -61,7 +96,7 @@ class MotorTest:
         self.frictionId = p.addUserDebugParameter("jointFriction", 0, 20, 0)
         self.torqueId = p.addUserDebugParameter("joint torque", 0, 20, 5)
 
-        self.motor_1 = GearedDcMotor(R=4, Kv=12, K_viscous=0.000122489, K_load=0)
+        self.motor_1 = GearedDcMotor(R=4, Kv=12, K_viscous=0.000122489, K_load=0, latency=0)
 
         self.display_joint_torque = p.addUserDebugText('NA', [1.5, 0, 0.1], textColorRGB=[0, 0, 0],
                                                   textSize=1)
@@ -71,13 +106,15 @@ class MotorTest:
                                                         textSize=1)
 
     def step(self, action):
+        self.time = self.time + self.timeStep
+
         applied_Voltage = p.readUserDebugParameter(self.voltageId)
         frictionForce = p.readUserDebugParameter(self.frictionId)
         jointTorque = p.readUserDebugParameter(self.torqueId)
 
         # Calculate motor output torque and current
         pos, vel, _, _ = p.getJointState(self.wheel, 1)
-        motor_torque, motor_current = self.motor_1.torque_from_voltage(applied_Voltage, vel)
+        motor_torque, motor_current = self.motor_1.torque_from_voltage(applied_Voltage, vel, self.time)
 
         # apply a joint torque from motor
         p.setJointMotorControl2(self.wheel, 1, p.TORQUE_CONTROL, force=motor_torque)
@@ -94,7 +131,7 @@ class MotorTest:
         p.addUserDebugText("Time: " + str(self.time), [1.2, 0, 0.6], textColorRGB=[0, 0, 0],
                            textSize=1, replaceItemUniqueId=self.display_time)
         p.stepSimulation()
-        self.time = self.time + self.timeStep
+
 
     def reset(self):
 
