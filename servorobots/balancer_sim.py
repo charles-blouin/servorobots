@@ -71,7 +71,7 @@ class BalancerEnv(gym.Env):
         # Thrust, torque in NWU (roll, pitch, yaw). The Pixhawk is in NED, careful!
         # -1 is not thrust, + 1 is 1 g acceleration
         action_dim = 4
-        act_high = np.ones([action_dim])
+        act_high = np.asarray([1, 2, 2, 2])
         self.action_space = spaces.Box(-act_high, act_high)
 
     def _configure(self, display=None):
@@ -87,29 +87,9 @@ class BalancerEnv(gym.Env):
         # This is to controll manually the quad.
         if self._renders:
             time.sleep(self.timeStep)
-            keys = p.getKeyboardEvents()
-            for k, v in keys.items():
 
-                if (k == p.B3G_RIGHT_ARROW and (v & p.KEY_WAS_TRIGGERED)):
-                    self.speedX = 0.01
-                if (k == p.B3G_RIGHT_ARROW and (v & p.KEY_WAS_RELEASED)):
-                    self.speedX = 0
-                if (k == p.B3G_LEFT_ARROW and (v & p.KEY_WAS_TRIGGERED)):
-                    self.speedX = -0.01
-                if (k == p.B3G_LEFT_ARROW and (v & p.KEY_WAS_RELEASED)):
-                    self.speedX = 0
-
-                if (k == p.B3G_UP_ARROW and (v & p.KEY_WAS_TRIGGERED)):
-                    self.forward = 0.05
-                if (k == p.B3G_UP_ARROW and (v & p.KEY_WAS_RELEASED)):
-                    self.forward = 0.0
-                if (k == p.B3G_DOWN_ARROW and (v & p.KEY_WAS_TRIGGERED)):
-                    self.forward = -0.05
-                if (k == p.B3G_DOWN_ARROW and (v & p.KEY_WAS_RELEASED)):
-                    self.forward = 0.0
-                self.dx = self.dx + self.speedX
                 #self.offset_command = self.offset_command + self.forward
-                print(self.dx)
+                # print(self.dx)
                 #print(keys)
         if self._renders:
             p.resetBasePositionAndOrientation(self.desired_pos_sphere, [self.dx, 0, 0], [0, 0, 0, 1])
@@ -214,7 +194,7 @@ class BalancerEnv(gym.Env):
 
         self.state = world_pos + world_ori + world_vel + world_rot_vel
 
-        return np.array(self.state)
+        return np.array(self.state), p
 
     def _render(self, mode='human', close=False):
         return
