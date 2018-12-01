@@ -52,10 +52,6 @@ class BalancerEnv(gym.Env):
         else:
             p.connect(p.DIRECT)
         self._seed()
-        self.lpf_rot_error = 0
-        self.angular_acc = np.array([0, 0, 0])
-        self.acc = np.array([0, 0, 0])
-        self.last_thrust = 0
         p.configureDebugVisualizer(p.COV_ENABLE_TINY_RENDERER, 0)
         p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1)
         self.dx = 0
@@ -105,21 +101,11 @@ class BalancerEnv(gym.Env):
         # world_rot_vel = (1, 0, 0)
         # To obtain local rot_vel
 
-        # Expressing world rotation in quadcopter frame coordinate, required for PD controller.
-        local_rot_vel = qt.qv_mult(qt.q_conjugate(world_ori), world_rot_vel)
-        desired_rot_vel = np.array(action[1:4]) * 5
+        p.setJointMotorControl2(self.quad, 0, p.TORQUE_CONTROL, force=-.01)
+        p.setJointMotorControl2(self.quad, 1, p.TORQUE_CONTROL, force=10)
 
-        rot_error = np.asarray(local_rot_vel) - desired_rot_vel
-        self.lpf_rot_error = rot_error * 0.05 + self.lpf_rot_error * 0.95
-        thrust = (action[0] + 1) * self.zero_thrust
+        p.setJointMotorControl2(self.quad, 0, p.VELOCITY_CONTROL, targetVelocity = 0, force = 0)
 
-        torque = -rot_error*0.1
-
-        ang_power = np.sum(np.abs(np.multiply(torque, local_rot_vel)))
-
-        thrust_change = math.fabs((self.last_thrust - thrust))
-        p.applyExternalTorque(self.quad, -1, -rot_error*0.1, p.WORLD_FRAME)
-        p.applyExternalForce(self.quad, -1, [0, 0, thrust], [0, 0, 0], p.LINK_FRAME)
         contacts = p.getContactPoints()
 
 
@@ -132,7 +118,7 @@ class BalancerEnv(gym.Env):
             touched_ground = -100
 
         distance_from_center = np.linalg.norm(np.asarray(world_pos) - np.asarray([0, 0, 0.5]))
-        reward = 1 - distance_from_center *0.5 - ang_power * 0.14 - thrust_change * 0.05 + touched_ground
+        reward = 1
 
         # print(rot_error)
         done = 0
@@ -151,7 +137,7 @@ class BalancerEnv(gym.Env):
         # see https://github.com/bulletphysics/bullet3/issues/1934 to load multiple colors
 
         if self.render:
-            visualShapeId = p.createVisualShape(shapeType=p.GEOM_SPHERE, radius=0.1, rgbaColor=[1, 0, 0, 1],
+            visualShapeId = p.createVisualShape(shapeType=p.GEOM_SPHERE, radius=0.01, rgbaColor=[1, 0, 0, 1],
                             specularColor=[0.4, .4, 0])
             self.desired_pos_sphere = p.createMultiBody(baseMass=0, baseInertialFramePosition=[0, 0, 0], baseVisualShapeIndex=visualShapeId)
         rand_ori = self.np_random.uniform(low=-1, high=1, size=(4,)) + np.asarray([0,0,0,2])
@@ -160,7 +146,7 @@ class BalancerEnv(gym.Env):
         #TODO Start with random vel
 
 
-        self.quad = p.loadURDF(os.path.join(currentdir, "quad.urdf"),[0,0,0.5] + rand_pos, rand_ori, flags=p.URDF_USE_INERTIA_FROM_FILE)
+        self.quad = p.loadURDF(os.path.join(currentdir, "balancer.urdf"),[0,0,0.1], [0, 0, 0, 1], flags=p.URDF_USE_INERTIA_FROM_FILE)
 
 
         filename = os.path.join(pybullet_data.getDataPath(), "plane_stadium.sdf")
@@ -171,6 +157,15 @@ class BalancerEnv(gym.Env):
         for i in self.ground_plane_mjcf:
             p.changeDynamics(i, -1, lateralFriction=0.8, restitution=0.5)
             p.changeVisualShape(i, -1, rgbaColor=[1, 1, 1, 0.8])
+
+        p.changeDynamics(self.quad, -1, linearDamping=0.1, angularDamping=0.1)
+        for j in range(p.getNumJoints(self.quad)):
+            p.changeDynamics(self.quad, j, linearDamping=0.1, angularDamping=0.1)
+            print(p.getJointInfo(self.quad, j))
+
+        print(p.getNumJoints(self.quad))
+        print(p.getNumConstraints())
+
 
         self.timeStep = 0.01
         self.gravity = -9.8
