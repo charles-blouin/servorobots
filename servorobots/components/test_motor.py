@@ -5,63 +5,84 @@ parentdir = os.path.dirname(os.path.dirname(currentdir))
 import pybullet as p
 import pybullet_data
 import time
+import collections
+
+class TimestampInput:
+    def __init__(self, i, t):
+        self.i = i
+        self.t = t
+
 
 class GearedDcMotor:
-    def __init__(self, R, Kv, K_viscous, K_load, latency = 0, buffer_size=10):
+    def __init__(self, R, Kv, K_viscous, K_load, timestep, latency = 0):
         # Motor internal resistance
         self.R = R
         self.Kv = Kv
         self.K_viscous = K_viscous
         self.K_load = K_load
+        self.timestep = timestep
+
+        # The voltage the motor is currently receiving
+        self.applied_v = TimestampInput(0, -100)
+        self.v_buffer = collections.deque()
+        if latency < 0:
+            raise ValueError("Latency < 0. You can't see the future")
         self.latency = latency
-        self.buffer_size = buffer_size
-        self.voltage_buffer = [0] * buffer_size
-        self.time_buffer = [0] + [1000] * (buffer_size-1)
-        self.latest_voltage_index = 1
-        self.motor_buffer_index = 0
+
+        # Backlash in rad
+        self.backlash = 0.5
+        self.pos_backlash = 0
+        self.vel_motor = 0
 
 
-    def torque_from_voltage(self, Vin, omega, currentTime):
+    def torque_from_voltage(self, v_in, omega):
+        # This section handles latency
+        motor_time = v_in.t - self.latency
+        if (len(self.v_buffer) > 0) and (v_in.t < self.v_buffer[-1].t):
+            raise ValueError('Input Voltage timestamp is lower than stored timestamp')
+        else:
+            self.v_buffer.append(v_in)
 
-        # Update the buffer
-        self.voltage_buffer[self.latest_voltage_index] = Vin
-        self.time_buffer[self.latest_voltage_index] = currentTime
-        self.latest_voltage_index = (self.latest_voltage_index  + 1) % self.buffer_size
+        while 1:
+            # Check if the queue is empty
+            if len(self.v_buffer) == 0:
+                break
+            # Check if leftmost item should be used as new voltage
+            if self.v_buffer[0].t <= motor_time:
+                self.applied_v = self.v_buffer.popleft()
+            else:
+                break
 
-        # Look for the Vin command to send, taking into account latency.
-        motor_time = currentTime - self.latency
-        print('Current Time ' + str(currentTime))
-        print('Voltage Buffer ' + str(self.voltage_buffer))
-        print('Time Buffer ' + str(self.time_buffer))
-        print(self.motor_buffer_index)
-        # print(self.time_buffer[(self.motor_buffer_index + 1) % self.buffer_size] - motor_time)
+        Vin = self.applied_v.i
 
-        # If the next time in the buffer is still before or at motor_time
-        while (self.time_buffer[(self.motor_buffer_index + 1) % self.buffer_size] - motor_time) <= 0.00001:
-            # Increase the index and check again
+        # This section handles backlash
 
-            self.motor_buffer_index = (self.motor_buffer_index + 1) % self.buffer_size
-            # print(self.motor_buffer_index)
+        # varies between +- backlash/2
 
-        self.motor_buffer_index = (self.motor_buffer_index) % self.buffer_size
-        print(Vin)
-        if Vin != self.voltage_buffer[self.motor_buffer_index]:
-            print('error!')
+        # When accelerating or decelerating with no backlash.
 
-        # Most up to date voltage given latency
-        Vin = self.voltage_buffer[self.motor_buffer_index]
+        print('Start: backlash' + str(self.pos_backlash))
+
+        if self.pos_backlash >= self.backlash/2 and (self.vel_motor >= omega):
+            print('No backlash, motor going forward')
+            self.pos_backlash = self.backlash/2
+            self.vel_motor = omega
+        elif self.pos_backlash <= -self.backlash/2 and (self.vel_motor <= omega):
+            print('No backlash, motor going backward')
+            self.pos_backlash = -self.backlash/2
+            self.vel_motor = omega
 
 
         # Torque output of the motor before gear
         # Nm = V/Ohm / (rad/s/V) = I * V * s = W * s = Nm/s * s
-        torque_raw = (Vin - omega / self.Kv) / self.R / self.Kv
+        torque_raw = (Vin - self.vel_motor / self.Kv) / self.R / self.Kv
 
         # Kt = Kv
         # Current = Torque * Kt = Torque * Kv
         # A = Nm * (rad/s/V) = W*s / V / s = V * A * s / V / s = A
         current = torque_raw * self.Kv
 
-        torque_friction = omega * self.K_viscous
+        torque_friction = self.vel_motor * self.K_viscous
 
         torque_out = (torque_raw - torque_friction) / (1 + self.K_load)
 
@@ -82,21 +103,33 @@ class GearedDcMotor:
         # K_load = (torque_raw - torque_friction)/torque_out - 1
         # K_load = ((Vin - omega / self.Kv) / self.R / self.Kv) - omega * self.K_viscous)/torque_out - 1
 
+        # We update the velocity and position of the motor. If we are outsite of the backlash, \
+        # the position will be reset next loop.
+        self.vel_motor = self.vel_motor + torque_out/0.000001 * self.timestep
+        # self.vel_motor = self.Kv * Vin
+        self.pos_backlash = self.timestep * (self.vel_motor - omega) + self.pos_backlash
+
+
+
+        if abs(self.pos_backlash) <= self.backlash/2:
+            torque_out = 0
+        print(torque_out)
+
         # Motor current
         return torque_out, current
 
 class MotorTest:
     def __init__(self):
         p.connect(p.GUI)
-        self.timeStep = 0.01
+        self.timeStep = 0.001
         self.gravity = -9.8
         self.time = 0
 
-        self.voltageId = p.addUserDebugParameter("Input Voltage", 0, 20, 6)
+        self.voltageId = p.addUserDebugParameter("Input Voltage", -5, 5, 0)
         self.frictionId = p.addUserDebugParameter("jointFriction", 0, 20, 0)
         self.torqueId = p.addUserDebugParameter("joint torque", 0, 20, 5)
 
-        self.motor_1 = GearedDcMotor(R=4, Kv=12, K_viscous=0.000122489, K_load=0, latency=0)
+        self.motor_1 = GearedDcMotor(R=4, Kv=12, K_viscous=0.000122489, K_load=0, timestep = self.timeStep, latency=0)
 
         self.display_joint_torque = p.addUserDebugText('NA', [1.5, 0, 0.1], textColorRGB=[0, 0, 0],
                                                   textSize=1)
@@ -114,7 +147,7 @@ class MotorTest:
 
         # Calculate motor output torque and current
         pos, vel, _, _ = p.getJointState(self.wheel, 1)
-        motor_torque, motor_current = self.motor_1.torque_from_voltage(applied_Voltage, vel, self.time)
+        motor_torque, motor_current = self.motor_1.torque_from_voltage(TimestampInput(applied_Voltage, self.time), vel)
 
         # apply a joint torque from motor
         p.setJointMotorControl2(self.wheel, 1, p.TORQUE_CONTROL, force=motor_torque)
