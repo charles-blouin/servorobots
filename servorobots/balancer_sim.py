@@ -20,6 +20,9 @@ import pybullet as p
 import pybullet_data
 from pkg_resources import parse_version
 
+from servorobots.components.test_motor import GearedDcMotor
+from servorobots.components.test_motor import TimestampInput
+
 logger = logging.getLogger(__name__)
 gym.Env()
 

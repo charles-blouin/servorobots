@@ -29,10 +29,14 @@ class GearedDcMotor:
             raise ValueError("Latency < 0. You can't see the future")
         self.latency = latency
 
+        #
+        self.active_backlash = False
         # Backlash in rad
-        self.backlash = 0.5
+        self.backlash = 1/360*6.3
         self.pos_backlash = 0
         self.vel_motor = 0
+        # Backlash low speed threshold (backlash will be deactivated above this speed for numerical stability)
+        self.backlash_threshold = 10
 
 
     def torque_from_voltage(self, v_in, omega):
@@ -61,15 +65,19 @@ class GearedDcMotor:
 
         # When accelerating or decelerating with no backlash.
 
-        print('Start: backlash' + str(self.pos_backlash))
-
-        if self.pos_backlash >= self.backlash/2 and (self.vel_motor >= omega):
-            print('No backlash, motor going forward')
-            self.pos_backlash = self.backlash/2
-            self.vel_motor = omega
-        elif self.pos_backlash <= -self.backlash/2 and (self.vel_motor <= omega):
-            print('No backlash, motor going backward')
-            self.pos_backlash = -self.backlash/2
+        # print('Start: backlash' + str(self.pos_backlash))
+        if self.active_backlash:
+            if self.pos_backlash >= self.backlash/2 and (self.vel_motor >= omega):
+                # print('No backlash, motor going forward')
+                self.pos_backlash = self.backlash/2
+                self.vel_motor = omega
+            elif self.pos_backlash <= -self.backlash/2 and (self.vel_motor <= omega):
+                # print('No backlash, motor going backward')
+                self.pos_backlash = -self.backlash/2
+                self.vel_motor = omega
+            else:
+                print('Backlash!')
+        else:
             self.vel_motor = omega
 
 
@@ -103,17 +111,16 @@ class GearedDcMotor:
         # K_load = (torque_raw - torque_friction)/torque_out - 1
         # K_load = ((Vin - omega / self.Kv) / self.R / self.Kv) - omega * self.K_viscous)/torque_out - 1
 
-        # We update the velocity and position of the motor. If we are outsite of the backlash, \
+        # We update the velocity and position of the motor. If we are outside of the backlash, \
         # the position will be reset next loop.
-        self.vel_motor = self.vel_motor + torque_out/0.000001 * self.timestep
-        # self.vel_motor = self.Kv * Vin
-        self.pos_backlash = self.timestep * (self.vel_motor - omega) + self.pos_backlash
+        if self.active_backlash:
+            self.vel_motor = self.vel_motor + torque_out/0.000005 * self.timestep
+            # self.vel_motor = self.Kv * Vin
+            self.pos_backlash = self.timestep * (self.vel_motor - omega) + self.pos_backlash
 
-
-
-        if abs(self.pos_backlash) <= self.backlash/2:
-            torque_out = 0
-        print(torque_out)
+            if abs(self.pos_backlash) <= self.backlash/2:
+                torque_out = 0
+                print('Torque out:' + str(torque_out))
 
         # Motor current
         return torque_out, current
@@ -121,12 +128,12 @@ class GearedDcMotor:
 class MotorTest:
     def __init__(self):
         p.connect(p.GUI)
-        self.timeStep = 0.001
+        self.timeStep = 0.01
         self.gravity = -9.8
         self.time = 0
 
         self.voltageId = p.addUserDebugParameter("Input Voltage", -5, 5, 0)
-        self.frictionId = p.addUserDebugParameter("jointFriction", 0, 20, 0)
+        self.frictionId = p.addUserDebugParameter("jointFriction", 0, 0.1, 0)
         self.torqueId = p.addUserDebugParameter("joint torque", 0, 20, 5)
 
         self.motor_1 = GearedDcMotor(R=4, Kv=12, K_viscous=0.000122489, K_load=0, timestep = self.timeStep, latency=0)
