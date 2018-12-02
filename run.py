@@ -212,6 +212,8 @@ def main():
     args, unknown_args = arg_parser.parse_known_args()
     extra_args = parse_cmdline_kwargs(unknown_args)
     unknown_a = parse_unknown_args(unknown_args)
+    print('args')
+    print(args)
 
     # The parser does not seem to accept new arguments, so I parse custom arguments here.
     print('extra_args')

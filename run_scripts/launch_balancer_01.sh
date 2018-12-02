@@ -13,6 +13,8 @@ while [ "$1" != "" ]; do
                                 ;;
         -p | --play )           play=2
                                 ;;
+        -d | --draw )           play=1
+                                ;;
         -h | --help )           usage
                                 exit
                                 ;;
@@ -25,19 +27,23 @@ done
 me=`basename "$0"`$version
 cd ..
 
-if [ $play -gt 1 ]
+if [ $play = 2 ]
 then
     latest_file=$(ls results/${me}/checkpoints/ | tail -1)
     echo Now playing
-    python3 run.py --alg=ppo2 --env=RCB_balancer-render-v0 --network=mlp2x32 --num_timesteps=5e5 \
+    python3 run.py --alg=ppo2 --env=RCB_balancer-render-v0 --network=mlp2x16 --num_timesteps=10e5 \
     --load_path results/${me}/checkpoints/${latest_file} \
     ent_coef=10 \
     --play
+elif [ $play = 1 ]
+then
+    python3 servorobots/tools/plot_results.py --dirs results/${me} --task_name ${me} \
+    --no-show --save_dir results/${me}
 else
     # Name of the current file + version
     result_dir=results/${me}
 
-    python3 run.py --alg=ppo2 --env=RCB_balancer-v0 --network=mlp2x32 --num_timesteps=1e6 \
+    python3 run.py --alg=ppo2 --env=RCB_balancer-v0 --network=mlp2x16 --num_timesteps=1e6 \
     --save_interval=1 --num_env=2 \
     --save_path results/${me}/save/save \
     --nsteps=1024 \
@@ -46,10 +52,10 @@ else
     --gamma=0.99 \
     --noptepochs=10 \
     --log_interval=1 \
-    --lr=3e-4 \
+    --lr='lambda f: 3e-4 * f' \
     --progress_dir=results/${me}
 
+    python3 servorobots/tools/plot_results.py --dirs results/${me} --task_name ${me} \
+    --no-show --save_dir results/${me}
 
-    #python3 servorobots/tools/plot_results.py --dirs results/${me} --task_name ${me} \
-    #--no-show --save_dir results/${me}
 fi
