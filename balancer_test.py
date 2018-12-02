@@ -6,15 +6,17 @@ import servorobots.network.mlp_type
 
 
 env = gym.make('RCB_balancer-render-v0')
-_, p = env.reset()
+_ = env.reset()
 
 cmd_forward = 0
 cmd_turn = 0
+sum = env.action_space.sample()
 
 for _ in range(1000000):
     env.render()
     env.step(env.action_space.sample()) # take a random action
 
+"""
     keys = p.getKeyboardEvents()
     for k, v in keys.items():
 
@@ -40,4 +42,5 @@ for _ in range(1000000):
     clip = lambda x, l, h: l if x < l else h if x > h else x
     cmd_right = clip(cmd_forward - cmd_turn, -1, 1)
     cmd_left = clip(cmd_forward + cmd_turn, -1, 1)
+    """
 

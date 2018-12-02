@@ -1,7 +1,9 @@
 """
-Classic cart-pole system implemented by Rich Sutton et al.
-Copied from https://webdocs.cs.ualberta.ca/~sutton/book/code/pole.c
+
+Polulu Balboa
 """
+#TODO Adjust the inertia and COG of the vehicle
+
 import os, inspect
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(os.path.dirname(currentdir))
@@ -46,31 +48,39 @@ class qt:
 
 class BalancerEnv(gym.Env):
     def __init__(self, renders=False):
+
         self._renders = renders
         if (renders):
             p.connect(p.GUI)
         else:
             p.connect(p.DIRECT)
         self._seed()
+        self.timestep = 0.003
+        self.gravity = -9.8
+
+        self.voltageId = p.addUserDebugParameter("Input Voltage", -5, 5, 0)
+
         p.configureDebugVisualizer(p.COV_ENABLE_TINY_RENDERER, 0)
         p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1)
+
         self.dx = 0
-        self.speedX = 0
-        self.dy = 0
-        self.dz = 0
+        self.time = 0
+        self.max_voltage = 6
+        self.motor_left = GearedDcMotor(R=4, Kv=5, K_viscous=0.000122489, K_load=0, timestep=self.timestep, latency=0)
+        self.motor_right = GearedDcMotor(R=4, Kv=5, K_viscous=0.000122489, K_load=0, timestep=self.timestep, latency=0)
+
         # Quadcopter observation:
-        # Quaternion (4)
+        # Motor Speed right, left (2)
         # Angular velocity (3), Local frame
-        # Position (3)
-        # Velocity (3), Local frame
-        observation_dim = 13
+        # Acceleration (3), Local frame for later
+
+        observation_dim = 5
         high_obs = np.ones([observation_dim])
         self.observation_space = spaces.Box(high_obs*0, high_obs*1.5)
 
-        # Thrust, torque in NWU (roll, pitch, yaw). The Pixhawk is in NED, careful!
-        # -1 is not thrust, + 1 is 1 g acceleration
-        action_dim = 4
-        act_high = np.asarray([1, 2, 2, 2])
+        # Duty cycle, approximately equal to voltage. Battery voltage is corrected by the batteries.
+        action_dim = 1
+        act_high = np.asarray([1])
         self.action_space = spaces.Box(-act_high, act_high)
 
     def _configure(self, display=None):
@@ -85,57 +95,71 @@ class BalancerEnv(gym.Env):
 
         # This is to controll manually the quad.
         if self._renders:
-            time.sleep(self.timeStep)
+            time.sleep(self.timestep)
 
                 #self.offset_command = self.offset_command + self.forward
-                # print(self.dx)
-                #print(keys)
         if self._renders:
             p.resetBasePositionAndOrientation(self.desired_pos_sphere, [self.dx, 0, 0], [0, 0, 0, 1])
-        #if self._renders:
-            #print(math.fabs(x)/2.4)
-            #print(math.fabs(self.acceleration)*1)
+
         world_pos, world_ori = p.getBasePositionAndOrientation(self.quad)
         world_pos_offset = tuple([world_pos[0] - self.dx]) + world_pos[1:3]
         world_vel, world_rot_vel = p.getBaseVelocity(self.quad)
+
+        local_rot_vel = qt.qv_mult(qt.q_conjugate(world_ori), world_rot_vel)
+        # local_rot = qt.qv_mult(qt.q_conjugate(world_ori), world_ori)
+
+
+
+        _, vel_right, _, _ = p.getJointState(self.quad, 0)
+        _, vel_left, _, _ = p.getJointState(self.quad, 1)
+
+        # applied_Voltage = p.readUserDebugParameter(self.voltageId)
+        torque_right, current_right = self.motor_right.torque_from_voltage(TimestampInput(action[0]*self.max_voltage, self.time), vel_right)
+        torque_left, current_left = self.motor_left.torque_from_voltage(TimestampInput(action[0]*self.max_voltage, self.time), vel_left)
+        motor_forces = [torque_right, torque_left]
+
+
+
         # world_rot_vel = (1, 0, 0)
         # To obtain local rot_vel
-
-        p.setJointMotorControl2(self.quad, 0, p.TORQUE_CONTROL, force=-.01)
-        p.setJointMotorControl2(self.quad, 1, p.TORQUE_CONTROL, force=10)
-
-        p.setJointMotorControl2(self.quad, 0, p.VELOCITY_CONTROL, targetVelocity = 0, force = 0)
-
-        contacts = p.getContactPoints()
+        p.setJointMotorControlArray(self.quad, [0, 1], p.VELOCITY_CONTROL, targetVelocities=[0, 0], forces=[0, 0])
+        p.setJointMotorControlArray(self.quad, [0, 1], p.TORQUE_CONTROL, forces=motor_forces)
 
 
-        self.state =  world_pos_offset + world_ori + world_vel + world_rot_vel
-        # print(self.state)
+
+
+
+
+        self.state = tuple([vel_right, vel_left]) + local_rot_vel
+
 
         touched_ground = 0
 
-        if contacts != ():
-            touched_ground = -100
+
 
         distance_from_center = np.linalg.norm(np.asarray(world_pos) - np.asarray([0, 0, 0.5]))
-        reward = 1
+        power = abs(action[0] * self.max_voltage * current_left)
+        # print((world_pos[2] - 0.041) * 50)
+        # About 1 when 1, just below zero when down
+        reward = (world_pos[2] - 0.042) * 50 - power/8
 
-        # print(rot_error)
         done = 0
-
+        contacts = p.getContactPoints(bodyA=self.quad, linkIndexA=-1)
         if contacts != ():
+            touched_ground = -100
             done = 1
 
         if distance_from_center > 1:
             done = 1
 
+        self.time += self.timestep
+
         return np.array(self.state), reward, done, {}
 
     def _reset(self):
-    #    print("-----------reset simulation---------------")
         p.resetSimulation()
         # see https://github.com/bulletphysics/bullet3/issues/1934 to load multiple colors
-
+        p.setGravity(0, 0, self.gravity)
         if self.render:
             visualShapeId = p.createVisualShape(shapeType=p.GEOM_SPHERE, radius=0.01, rgbaColor=[1, 0, 0, 1],
                             specularColor=[0.4, .4, 0])
@@ -143,11 +167,19 @@ class BalancerEnv(gym.Env):
         rand_ori = self.np_random.uniform(low=-1, high=1, size=(4,)) + np.asarray([0,0,0,2])
         rand_ori = rand_ori/np.linalg.norm(rand_ori)
         rand_pos = self.np_random.uniform(low=-0.5, high=0.5, size=(3,))
-        #TODO Start with random vel
 
 
-        self.quad = p.loadURDF(os.path.join(currentdir, "balancer.urdf"),[0,0,0.1], [0, 0, 0, 1], flags=p.URDF_USE_INERTIA_FROM_FILE)
 
+        self.quad = p.loadURDF(os.path.join(currentdir, "balancer.urdf"),[0,0,0.05], [0, 0, 0, 1], flags=p.URDF_USE_INERTIA_FROM_FILE)
+
+        p.changeDynamics(self.quad, -1, lateralFriction=0.3, restitution=0.5)
+        p.changeVisualShape(self.quad, -1, rgbaColor=[1, 1, 0, 1]) # yellow
+
+        p.changeDynamics(self.quad, 0, lateralFriction=1, restitution=0.5)
+        p.changeVisualShape(self.quad, 0, rgbaColor=[1, 0, 0, 1]) # red
+
+        p.changeDynamics(self.quad, 1, lateralFriction=1, restitution=0.5)
+        p.changeVisualShape(self.quad, 1, rgbaColor=[0, 1, 0, 1])  # blue
 
         filename = os.path.join(pybullet_data.getDataPath(), "plane_stadium.sdf")
         self.ground_plane_mjcf = p.loadSDF(filename)
@@ -158,22 +190,17 @@ class BalancerEnv(gym.Env):
             p.changeDynamics(i, -1, lateralFriction=0.8, restitution=0.5)
             p.changeVisualShape(i, -1, rgbaColor=[1, 1, 1, 0.8])
 
-        p.changeDynamics(self.quad, -1, linearDamping=0.1, angularDamping=0.1)
+        p.changeDynamics(self.quad, -1, linearDamping=0, angularDamping=0)
         for j in range(p.getNumJoints(self.quad)):
-            p.changeDynamics(self.quad, j, linearDamping=0.1, angularDamping=0.1)
-            print(p.getJointInfo(self.quad, j))
-
-        print(p.getNumJoints(self.quad))
-        print(p.getNumConstraints())
+            p.changeDynamics(self.quad, j, linearDamping=0, angularDamping=0)
 
 
-        self.timeStep = 0.01
-        self.gravity = -9.8
-        p.setGravity(0,0, self.gravity)
+
+
         # Default 0.04 for linear and angular damping.
         # p.changeDynamics(self.quad, -1, linearDamping=1)
         # p.changeDynamics(self.quad, -1, angularDamping=1)
-        p.setTimeStep(self.timeStep)
+        p.setTimeStep(self.timestep)
         p.setRealTimeSimulation(0)
 
         info = p.getDynamicsInfo(self.quad, -1)
@@ -185,14 +212,17 @@ class BalancerEnv(gym.Env):
         # p.resetJointState(self.quad, 1, initialAngle)
         # p.resetJointState(self.quad, 0, initialCartPos)
 
-
-
         world_pos, world_ori = p.getBasePositionAndOrientation(self.quad)
         world_vel, world_rot_vel = p.getBaseVelocity(self.quad)
 
-        self.state = world_pos + world_ori + world_vel + world_rot_vel
+        local_rot_vel = qt.qv_mult(qt.q_conjugate(world_ori), world_rot_vel)
+        # local_rot = qt.qv_mult(qt.q_conjugate(world_ori), world_ori)
 
-        return np.array(self.state), p
+        _, vel_right, _, _ = p.getJointState(self.quad, 0)
+        _, vel_left, _, _ = p.getJointState(self.quad, 1)
+
+        self.state = tuple([vel_right, vel_left]) + local_rot_vel
+        return np.array(self.state)
 
     def _render(self, mode='human', close=False):
         return

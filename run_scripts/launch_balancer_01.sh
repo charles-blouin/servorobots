@@ -50,6 +50,6 @@ else
     --progress_dir=results/${me}
 
 
-    python3 servorobots/tools/plot_results.py --dirs results/${me} --task_name ${me} \
-    --no-show --save_dir results/${me}
+    #python3 servorobots/tools/plot_results.py --dirs results/${me} --task_name ${me} \
+    #--no-show --save_dir results/${me}
 fi
