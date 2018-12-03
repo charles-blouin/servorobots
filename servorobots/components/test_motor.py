@@ -14,13 +14,14 @@ class TimestampInput:
 
 
 class GearedDcMotor:
-    def __init__(self, R, Kv, K_viscous, K_load, timestep, latency = 0):
+    def __init__(self, R, Kv, K_viscous, K_load, timestep, V_max = 6, latency = 0):
         # Motor internal resistance
         self.R = R
         self.Kv = Kv
         self.K_viscous = K_viscous
         self.K_load = K_load
         self.timestep = timestep
+        self.V_max = V_max
 
         # The voltage the motor is currently receiving
         self.applied_v = TimestampInput(0, -100)
@@ -57,7 +58,7 @@ class GearedDcMotor:
             else:
                 break
 
-        Vin = self.applied_v.i
+        Vin = min(max(self.applied_v.i, -self.V_max), self.V_max)
 
         # This section handles backlash
 

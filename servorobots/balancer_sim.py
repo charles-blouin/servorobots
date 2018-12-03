@@ -3,6 +3,7 @@
 Polulu Balboa
 """
 #TODO Adjust the inertia and COG of the vehicle
+#TODO offset accelerometer with get LinkState
 
 import os, inspect
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -55,10 +56,10 @@ class BalancerEnv(gym.Env):
         else:
             p.connect(p.DIRECT)
         self._seed()
-        self.timestep = 0.003
+        self.timestep = 0.01
         self.gravity = -9.8
 
-        self.voltageId = p.addUserDebugParameter("Input Voltage", -5, 5, 0)
+        self.voltageId = p.addUserDebugParameter("Input Voltage", -6, 6, 0)
 
         p.configureDebugVisualizer(p.COV_ENABLE_TINY_RENDERER, 0)
         p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1)
@@ -66,8 +67,8 @@ class BalancerEnv(gym.Env):
         self.dx = 0
         self.time = 0
         self.max_voltage = 6
-        self.motor_left = GearedDcMotor(R=4, Kv=5, K_viscous=0.0006, K_load=6, timestep=self.timestep, latency=0)
-        self.motor_right = GearedDcMotor(R=4, Kv=5, K_viscous=0.0006, K_load=6, timestep=self.timestep, latency=0)
+        self.motor_left = GearedDcMotor(R=4, Kv=5, K_viscous=0.0006, K_load=3, timestep=self.timestep, latency=0.02)
+        self.motor_right = GearedDcMotor(R=4, Kv=5, K_viscous=0.0006, K_load=3, timestep=self.timestep, latency=0.02)
 
         # Quadcopter observation:
         # Motor Speed right, left (2)
@@ -93,70 +94,90 @@ class BalancerEnv(gym.Env):
         return [seed]
 
     def _step(self, action):
-        p.stepSimulation()
 
-        # This is to controll manually the quad.
-        if self._renders:
-            time.sleep(self.timestep)
+        for i in range(0,5):
+            p.stepSimulation()
 
-                #self.offset_command = self.offset_command + self.forward
-        if self._renders:
-            p.resetBasePositionAndOrientation(self.desired_pos_sphere, [self.dx, 0, 0], [0, 0, 0, 1])
+            # This is to controll manually the quad.
+            if self._renders:
+                time.sleep(self.timestep)
 
-        world_pos, world_ori = p.getBasePositionAndOrientation(self.quad)
-        world_pos_offset = tuple([world_pos[0] - self.dx]) + world_pos[1:3]
-        world_vel, world_rot_vel = p.getBaseVelocity(self.quad)
+                    #self.offset_command = self.offset_command + self.forward
+            if self._renders:
+                p.resetBasePositionAndOrientation(self.desired_pos_sphere, [self.dx, 0, 0], [0, 0, 0, 1])
 
-        local_rot_vel = qt.qv_mult(qt.q_conjugate(world_ori), world_rot_vel)
-        local_vel = qt.qv_mult(qt.q_conjugate(world_ori), world_vel)
-        acc = local_vel-self.last_vel
-        self.last_vel = local_vel
-
-        # local_rot = qt.qv_mult(qt.q_conjugate(world_ori), world_ori)
+            world_pos, world_ori = p.getBasePositionAndOrientation(self.quad)
+            world_pos_offset = tuple([world_pos[0] - self.dx]) + world_pos[1:3]
+            world_vel, world_rot_vel = p.getBaseVelocity(self.quad)
 
 
 
-        _, vel_right, _, _ = p.getJointState(self.quad, 0)
-        _, vel_left, _, _ = p.getJointState(self.quad, 1)
+            local_rot_vel = qt.qv_mult(qt.q_conjugate(world_ori), world_rot_vel)
+            local_vel = qt.qv_mult(qt.q_conjugate(world_ori), world_vel)
+            local_grav = qt.qv_mult(qt.q_conjugate(world_ori), (0, 0, -9.81))
+            acc = np.asarray(local_vel)-np.asarray(self.last_vel) + np.asarray(local_grav)
+            self.last_vel = local_vel
 
-        # applied_Voltage = p.readUserDebugParameter(self.voltageId)
-        torque_right, current_right = self.motor_right.torque_from_voltage(TimestampInput(action[0]*self.max_voltage, self.time), vel_right)
-        torque_left, current_left = self.motor_left.torque_from_voltage(TimestampInput(action[0]*self.max_voltage, self.time), vel_left)
-        motor_forces = [torque_right, torque_left]
-
-        # world_rot_vel = (1, 0, 0)
-        # To obtain local rot_vel
-        p.setJointMotorControlArray(self.quad, [0, 1], p.VELOCITY_CONTROL, targetVelocities=[0, 0], forces=[0, 0])
-        p.setJointMotorControlArray(self.quad, [0, 1], p.TORQUE_CONTROL, forces=motor_forces)
-
-
-        self.state = tuple([vel_right, vel_left]) + local_rot_vel + local_vel
-
-
-        touched_ground = 0
+            # local_rot = qt.qv_mult(qt.q_conjugate(world_ori), world_ori)
 
 
 
-        speed = np.linalg.norm(np.asarray(world_vel))
-        power = abs(action[0] * self.max_voltage * current_left)
-        # print((world_pos[2] - 0.041) * 50)
-        # About 1 when 1, just below zero when down
-        reward = (world_pos[2] - 0.042) * 50 - power/8 - speed
+            _, vel_right, _, _ = p.getJointState(self.quad, 0)
+            _, vel_left, _, _ = p.getJointState(self.quad, 1)
 
-        done = 0
-        contacts = p.getContactPoints(bodyA=self.quad, linkIndexA=-1)
-        if contacts != ():
-            touched_ground = -100
-            done = 1
-
-        self.time += self.timestep
+            #applied_Voltage = p.readUserDebugParameter(self.voltageId)
+            #torque_right, current_right = self.motor_right.torque_from_voltage(TimestampInput(applied_Voltage, self.time), vel_right)
+            #torque_left, current_left = self.motor_left.torque_from_voltage(TimestampInput(applied_Voltage, self.time), vel_left)
+            torque_right, current_right = self.motor_right.torque_from_voltage(TimestampInput(action[0]*self.max_voltage, self.time), vel_right)
+            torque_left, current_left = self.motor_left.torque_from_voltage(TimestampInput(action[0]*self.max_voltage, self.time), vel_left)
+            motor_forces = [torque_right, torque_left]
 
 
-        return np.array(self.state), reward, done, {}
+            # world_rot_vel = (1, 0, 0)
+            # To obtain local rot_vel
+            p.setJointMotorControlArray(self.quad, [0, 1], p.VELOCITY_CONTROL, targetVelocities=[0, 0], forces=[0, 0])
+            p.setJointMotorControlArray(self.quad, [0, 1], p.TORQUE_CONTROL, forces=motor_forces)
+
+
+            self.state = tuple([vel_right, vel_left]) + local_rot_vel + tuple(acc)
+
+
+            touched_ground = 0
+            done = 0
+            contacts = p.getContactPoints(bodyA=self.quad, linkIndexA=-1)
+            if contacts != ():
+                touched_ground = -1
+                self.number_times_ground_touched += 1
+                if self.number_times_ground_touched > 250:
+                    done = 1
+            euler = p.getEulerFromQuaternion(world_ori)
+            speed = np.linalg.norm(np.asarray(world_vel))
+            power = abs(action[0] * self.max_voltage * current_left)
+            # About 1 when 1, just below zero when down
+            reward = math.pi/2 - abs(euler[1]) + touched_ground - \
+                     np.linalg.norm(np.asarray(local_rot_vel)) / 10 \
+                     #- np.linalg.norm(np.asarray(world_pos))*2
+
+            # print(reward)
+            # To prevent spinning out of control.
+            # print(np.linalg.norm(np.asarray(local_rot_vel)))
+
+            # minimize power only when +-30 deg. upright
+            #if abs(euler[1]) < math.pi/6:
+            #    reward -= power/8 + speed
+            #if abs(euler[1]) > math.pi/4:
+            #    reward += power/8
+
+
+            self.time += self.timestep
+
+
+            return np.array(self.state), reward, done, {}
 
     def _reset(self):
         p.resetSimulation()
-        self.time = 0
+
+        self.number_times_ground_touched = 0
         # see https://github.com/bulletphysics/bullet3/issues/1934 to load multiple colors
         p.setGravity(0, 0, self.gravity)
         if self.render:
@@ -170,8 +191,11 @@ class BalancerEnv(gym.Env):
         self.motor_left = GearedDcMotor(R=4, Kv=5, K_viscous=0.0006, K_load=6, timestep=self.timestep, latency=0)
         self.motor_right = GearedDcMotor(R=4, Kv=5, K_viscous=0.0006, K_load=6, timestep=self.timestep, latency=0)
 
-        self.quad = p.loadURDF(os.path.join(currentdir, "balancer.urdf"),[0,0,0.05], [0, 0, 0, 1], flags=p.URDF_USE_INERTIA_FROM_FILE)
-
+        if self.np_random.uniform(low=-2, high=2, size=(1,)) > 0:
+            self.quad = p.loadURDF(os.path.join(currentdir, "balancer.urdf"),[0,0,0.05], [0, -0.7071, 0, 0.7071], flags=p.URDF_USE_INERTIA_FROM_FILE)
+        else:
+            self.quad = p.loadURDF(os.path.join(currentdir, "balancer.urdf"), [0, 0, 0.05], [0, 0.7071, 0, 0.7071],
+                                   flags=p.URDF_USE_INERTIA_FROM_FILE)
         p.changeDynamics(self.quad, -1, lateralFriction=0.3, restitution=0.5)
         p.changeVisualShape(self.quad, -1, rgbaColor=[1, 1, 0, 1]) # yellow
 
@@ -217,12 +241,14 @@ class BalancerEnv(gym.Env):
 
         local_rot_vel = qt.qv_mult(qt.q_conjugate(world_ori), world_rot_vel)
         local_vel = qt.qv_mult(qt.q_conjugate(world_ori), world_vel)
-        # local_rot = qt.qv_mult(qt.q_conjugate(world_ori), world_ori)
+        local_grav = qt.qv_mult(qt.q_conjugate(world_ori), (0, 0, -9.81))
+        acc = np.asarray(local_vel)-np.asarray(self.last_vel) + np.asarray(local_grav)
+        self.last_vel = local_vel
 
         _, vel_right, _, _ = p.getJointState(self.quad, 0)
         _, vel_left, _, _ = p.getJointState(self.quad, 1)
 
-        self.state = tuple([vel_right, vel_left]) + local_rot_vel + local_vel
+        self.state = tuple([vel_right, vel_left]) + local_rot_vel + tuple(acc)
         return np.array(self.state)
 
     def _render(self, mode='human', close=False):
