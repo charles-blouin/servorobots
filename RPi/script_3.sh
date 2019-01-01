@@ -1,6 +1,6 @@
 #!/bin/bash
 	while true;
-	do 
+	do
      	echo -------------------------------------------------------------
         declare -i err
     	err=0
@@ -20,8 +20,15 @@
         	break
     	fi
         echo -------------------------------------------------------------
+        
+        echo For VNC server
+        sudo apt-get update
+        err=err+$?
+        sudo apt-get install realvnc-vnc-server
+        err=err+$?
         echo Installing tensorflow
-        pip install --upgrade tensorflow
+        sudo apt-get -y install libatlas-base-dev
+        pip3 install --no-cache-dir --upgrade tensorflow
         err=err+$?
         cd
     	if [ $err -gt 0 ];
@@ -32,5 +39,9 @@
     	echo -------------------------------------------------------------
         echo All dependencies installed
         echo -------------------------------------------------------------
+        echo Enable VNC with
+        echo sudo raspi-config
+        echo Interface > VNC
+        echo Install VNC viewer https://www.realvnc.com/en/connect/download/viewer/linux/ 
 	break
 	done
