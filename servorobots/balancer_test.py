@@ -4,9 +4,11 @@
 import tensorflow as tf
 import os
 import argparse
+import numpy as np
+import time
 
 class AgentMLP:
-    def __init__(self, weight_file):
+    def __init__(self, weight_file, activation):
         weight_list = {}
         exec(open(weight_file).read(), weight_list)
         for x in weight_list:
@@ -18,6 +20,29 @@ class AgentMLP:
         self.num_layer = 2
 
 
+        self.obs_tf = tf.placeholder(tf.float32, [1, 8], name='obs')
+
+        w0 = tf.constant(weight_list["w0"], dtype=tf.float32)
+        b0 = tf.constant(weight_list["w0"], dtype=tf.float32)
+        x = activation(tf.matmul(self.obs_tf, w0) + b0)
+
+        w1 = tf.constant(weight_list["w1"], dtype=tf.float32)
+        b1 = tf.constant(weight_list["b1"], dtype=tf.float32)
+        x = activation(tf.matmul(x, w1) + b1)
+
+        wf = tf.constant(weight_list["wf"], dtype=tf.float32)
+        bf = tf.constant(weight_list["bf"], dtype=tf.float32)
+        self.x = activation(tf.matmul(x, wf) + bf)
+
+    def act(self, obs):
+        t00 = time.time()
+        with tf.Session() as sess:
+            t0 = time.time()
+            sess.run(self.x, feed_dict={self.obs_tf: np.asarray([[2, 2, 2, 2, 2, 2, 2, 2]])})
+            t1 = time.time()
+            print(t1-t0)
+            print(t1 - t00)
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -27,7 +52,15 @@ def main():
                         help="Layer Type: relu or tanh")
     args = parser.parse_args()
 
-    agent = AgentMLP(args.weight_file)
+    if args.layer_type == 'tanh':
+        activation = tf.nn.tanh
+    elif args.layer_type == 'relu':
+        activation = tf.nn.relu
+    else:
+        print('Invalid activation type')
+
+    agent = AgentMLP(args.weight_file, activation)
+    agent.act(1)
 
 
 if __name__ == '__main__':
