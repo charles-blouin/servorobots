@@ -11,6 +11,8 @@ while [ "$1" != "" ]; do
         -v | --version )        shift
                                 version=$1
                                 ;;
+        -W | --play-weights )   play=4
+                                ;;
         -w | --weights )        play=3
                                 ;;
         -p | --play )           play=2
@@ -29,7 +31,10 @@ done
 me=`basename "$0"`$version
 cd ..
 
-if [ $play = 3 ]
+if [ $play = 4 ]
+then
+    python3 servorobots/balancer_test.py results/${me}/weight.weights tanh
+elif [ $play = 3 ]
 then
     python3 servorobots/tools/export_weights.py \
      results/${me}/save/save \
