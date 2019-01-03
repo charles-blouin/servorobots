@@ -34,14 +34,18 @@ class AgentMLP:
         bf = tf.constant(weight_list["bf"], dtype=tf.float32)
         self.x = activation(tf.matmul(x, wf) + bf)
 
-    def act(self, obs):
-        t00 = time.time()
+    def test_time(self):
+        t0 = time.time()
         with tf.Session() as sess:
-            t0 = time.time()
-            sess.run(self.x, feed_dict={self.obs_tf: np.asarray([[2, 2, 2, 2, 2, 2, 2, 2]])})
             t1 = time.time()
-            print(t1-t0)
-            print(t1 - t00)
+            sess.run(self.x, feed_dict={self.obs_tf: np.asarray([[2, 2, 2, 2, 2, 2, 2, 2]])})
+            t2 = time.time()
+            for i in range(0, 100):
+                sess.run(self.x, feed_dict={self.obs_tf: np.asarray([[2, 2, 2, 2, 2, 2, 2, 2]])})
+            t3 = time.time()
+            print('Time for with session: ' + str((t1 - t0)))
+            print('Time to run the first session: ' + str(t2-t1))
+            print('Time to run sessions after: ' + str((t3 - t2)/100))
 
 
 def main():
@@ -60,7 +64,7 @@ def main():
         print('Invalid activation type')
 
     agent = AgentMLP(args.weight_file, activation)
-    agent.act(1)
+    agent.test_time()
 
 
 if __name__ == '__main__':
