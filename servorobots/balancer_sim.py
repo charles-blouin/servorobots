@@ -98,12 +98,11 @@ class BalancerEnv(gym.Env):
         for i in range(0,5):
             p.stepSimulation()
 
-            # This is to controll manually the quad.
+            # This is to control manually the vehicle.
             if self._renders:
                 time.sleep(self.timestep)
 
-                    #self.offset_command = self.offset_command + self.forward
-            if self._renders:
+                #self.offset_command = self.offset_command + self.forward
                 p.resetBasePositionAndOrientation(self.desired_pos_sphere, [self.dx, 0, 0], [0, 0, 0, 1])
 
             world_pos, world_ori = p.getBasePositionAndOrientation(self.quad)
@@ -153,7 +152,8 @@ class BalancerEnv(gym.Env):
             euler = p.getEulerFromQuaternion(world_ori)
             speed = np.linalg.norm(np.asarray(world_vel))
             power = abs(action[0] * self.max_voltage * current_left)
-            # About 1 when 1, just below zero when down
+            # About 1 when up, just below zero when down
+
             reward = math.pi/2 - abs(euler[1]) + touched_ground - \
                      np.linalg.norm(np.asarray(local_rot_vel)) / 10 \
                      #- np.linalg.norm(np.asarray(world_pos))*2
@@ -191,11 +191,18 @@ class BalancerEnv(gym.Env):
         self.motor_left = GearedDcMotor(R=4, Kv=5, K_viscous=0.0006, K_load=6, timestep=self.timestep, latency=0)
         self.motor_right = GearedDcMotor(R=4, Kv=5, K_viscous=0.0006, K_load=6, timestep=self.timestep, latency=0)
 
+        '''
+        To start on the ground
         if self.np_random.uniform(low=-2, high=2, size=(1,)) > 0:
             self.quad = p.loadURDF(os.path.join(currentdir, "balancer.urdf"),[0,0,0.05], [0, -0.7071, 0, 0.7071], flags=p.URDF_USE_INERTIA_FROM_FILE)
         else:
             self.quad = p.loadURDF(os.path.join(currentdir, "balancer.urdf"), [0, 0, 0.05], [0, 0.7071, 0, 0.7071],
                                    flags=p.URDF_USE_INERTIA_FROM_FILE)
+        '''
+
+        self.quad = p.loadURDF(os.path.join(currentdir, "balancer.urdf"), [0, 0, 0.05], [0, 0, 0, 1],
+                               flags=p.URDF_USE_INERTIA_FROM_FILE)
+
         p.changeDynamics(self.quad, -1, lateralFriction=0.3, restitution=0.5)
         p.changeVisualShape(self.quad, -1, rgbaColor=[1, 1, 0, 1]) # yellow
 

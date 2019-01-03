@@ -11,6 +11,8 @@ while [ "$1" != "" ]; do
         -v | --version )        shift
                                 version=$1
                                 ;;
+        -w | --weights )        play=3
+                                ;;
         -p | --play )           play=2
                                 ;;
         -d | --draw )           play=1
@@ -27,7 +29,12 @@ done
 me=`basename "$0"`$version
 cd ..
 
-if [ $play = 2 ]
+if [ $play = 3 ]
+then
+    python3 servorobots/tools/export_weights.py \
+     results/${me}/save/save \
+      results/${me}/weight.weights
+elif [ $play = 2 ]
 then
     latest_file=$(ls results/${me}/checkpoints/ | tail -1)
     echo Now playing
@@ -52,12 +59,16 @@ else
     --gamma=0.99 \
     --noptepochs=10 \
     --log_interval=1 \
-    --lr='lambda f: 3e-4 * f'
+    --lr='lambda f: 3e-4 * f' \
     --progress_dir=results/${me}
     #--lr='lambda f: 3e-4 * f'
     #  cliprange=lambda f : f * 0.1,
 
     python3 servorobots/tools/plot_results.py --dirs results/${me} --task_name ${me} \
     --no-show --save_dir results/${me}
+
+    python3 servorobots/tools/export_weights.py \
+     results/${me}/save/save \
+      results/${me}/weight.weights
 
 fi

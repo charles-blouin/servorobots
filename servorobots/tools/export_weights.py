@@ -3,14 +3,16 @@
 import joblib
 import tensorflow as tf
 import os
+
+import argparse
 import pdb;
 
-def export_weight(file_name_in='saveExample', file_name_out='cartpole_simple.weights'):
+def export_weight(file_name_in, file_name_out='cartpole_simple.weights'):
 
     sess = tf.Session()
     variables = tf.trainable_variables()
 
-    loaded_params = joblib.load(os.path.expanduser(file_name_in))
+    loaded_params = joblib.load(file_name_in)
     print(loaded_params)
     print(loaded_params['ppo2_model/pi/mlp_fc1/b:0'])
 
@@ -40,7 +42,13 @@ def export_weight(file_name_in='saveExample', file_name_out='cartpole_simple.wei
     print("Policy weights dumped to " + file_name_out)
 
 def main():
-    export_weight()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("file_name_in",
+                        help="display a square of a given number")
+    parser.add_argument("file_name_out",  default="weights.weights")
+    args = parser.parse_args()
+    print(args.file_name_out)
+    export_weight(args.file_name_in, args.file_name_out)
 
 if __name__ == '__main__':
     main()
