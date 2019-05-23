@@ -1,5 +1,5 @@
 """
-Classic cart-pole system implemented by Rich Sutton et al.
+Modified from the classic cart-pole system implemented by Rich Sutton et al.
 Copied from https://webdocs.cs.ualberta.ca/~sutton/book/code/pole.c
 """
 import os,  inspect
