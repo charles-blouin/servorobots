@@ -1,46 +1,43 @@
+# This file loads the balancer simulation and controls it with exported weights.
+# It is an important step to verify that the network is correctly built from the weights.
+
+import tensorflow as tf
+import argparse
 import gym
+
 import servorobots
-import servorobots.network.mlp_type
+from servorobots.network.agent_mlp import AgentMLP
 
 
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("weight_file",
+                        help="weights file for the agent")
+    parser.add_argument("layer_type",
+                        help="Layer Type: relu or tanh")
+    args = parser.parse_args()
+
+    if args.layer_type == 'tanh':
+        activation = tf.nn.tanh
+    elif args.layer_type == 'relu':
+        activation = tf.nn.relu
+    else:
+        print('Invalid activation type')
+
+    agent = AgentMLP(args.weight_file, activation)
+
+    balancer = gym.make("RCB_balancer-render-v0")
+    states = balancer.reset()
+
+    with tf.Session() as sess:
+        agent.test_time(sess)
+        while 1:
+            for i in range(0, 500):
+                action = agent.act(sess, states)
+                states, reward, done, _ = balancer.step(action)
+            action = balancer.reset()
 
 
-env = gym.make('RCB_balancer-render-v0')
-_ = env.reset()
-
-cmd_forward = 0
-cmd_turn = 0
-sum = env.action_space.sample()
-
-for _ in range(1000000):
-    env.render()
-    env.step(env.action_space.sample()) # take a random action
-
-"""
-    keys = p.getKeyboardEvents()
-    for k, v in keys.items():
-
-        if (k == p.B3G_RIGHT_ARROW and (v & p.KEY_WAS_TRIGGERED)):
-            cmd_turn = 1
-        if (k == p.B3G_RIGHT_ARROW and (v & p.KEY_WAS_RELEASED)):
-            cmd_turn = 0
-        if (k == p.B3G_LEFT_ARROW and (v & p.KEY_WAS_TRIGGERED)):
-            cmd_turn = -1
-        if (k == p.B3G_LEFT_ARROW and (v & p.KEY_WAS_RELEASED)):
-            cmd_turn = 0
-
-        if (k == p.B3G_UP_ARROW and (v & p.KEY_WAS_TRIGGERED)):
-            cmd_forward = 1
-        if (k == p.B3G_UP_ARROW and (v & p.KEY_WAS_RELEASED)):
-            cmd_forward = 0.0
-        if (k == p.B3G_DOWN_ARROW and (v & p.KEY_WAS_TRIGGERED)):
-            cmd_forward = -1
-        if (k == p.B3G_DOWN_ARROW and (v & p.KEY_WAS_RELEASED)):
-            cmd_forward = 0.0
-        # self.offset_command = self.offset_command + self.forward
-
-    clip = lambda x, l, h: l if x < l else h if x > h else x
-    cmd_right = clip(cmd_forward - cmd_turn, -1, 1)
-    cmd_left = clip(cmd_forward + cmd_turn, -1, 1)
-    """
+if __name__ == '__main__':
+    main()
 

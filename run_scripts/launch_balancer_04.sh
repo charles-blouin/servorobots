@@ -50,7 +50,7 @@ elif [ $action = 2 ]
 then
     latest_file=$(ls results/${me}/checkpoints/ | tail -1)
     echo Now playing
-    python3 run.py --alg=ppo2 --env=RCB_balancer-render-v0 --network=mlp2x32 --num_timesteps=10e5 \
+    python3 run.py --alg=ppo2 --env=RCB_balancer-render-v0 --network=mlp2x2 --num_timesteps=10e5 \
     --load_path results/${me}/checkpoints/${latest_file} \
     ent_coef=10 \
     --play
@@ -67,7 +67,7 @@ else
     # Name of the current file + version
     result_dir=results/${me}
 
-    python3 run.py --alg=ppo2 --env=RCB_balancer-v0 --network=mlp2x32 --num_timesteps=1e6 \
+    python3 run.py --alg=ppo2 --env=RCB_balancer-v0 --network=mlp2x2 --num_timesteps=1e6 \
     --save_interval=1 --num_env=2 \
     --save_path results/${me}/save/save \
     --nsteps=1024 \

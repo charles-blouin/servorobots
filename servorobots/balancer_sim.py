@@ -23,6 +23,7 @@ import pybullet as p
 import pybullet_data
 from pkg_resources import parse_version
 
+
 from servorobots.components.test_motor import GearedDcMotor
 from servorobots.components.test_motor import TimestampInput
 
@@ -95,7 +96,8 @@ class BalancerEnv(gym.Env):
 
     def _step(self, action):
 
-        for i in range(0,5):
+        for i in range(0,1):
+            #print(action)
             p.stepSimulation()
 
             # This is to control manually the vehicle.
@@ -171,8 +173,8 @@ class BalancerEnv(gym.Env):
 
             self.time += self.timestep
 
-
-            return np.array(self.state), reward, done, {}
+            #print(self.state)
+        return np.array(self.state), reward, done, {}
 
     def _reset(self):
         p.resetSimulation()
