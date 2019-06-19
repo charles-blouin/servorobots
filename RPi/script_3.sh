@@ -36,6 +36,35 @@
         	echo Tensorflow install failed
         	break
     	fi
+    	
+    	pip install gym
+    	err=err+$?
+    	sudo apt-get update && sudo apt-get install cmake libopenmpi-dev python3-dev zlib1g-dev -y
+    	err=err+$?
+    	
+    	git clone https://github.com/openai/baselines.git
+    	err=err+$?
+    	cd baselines
+    	err=err+$?
+    	pip3 install -e .
+    	err=err+$?https://github.com/bulletphysics/bullet3
+    	
+    	if [ $err -gt 0 ];
+        	then
+        	echo Error during installation of gym or baselines
+        	break
+    	fi
+    	
+    	pip install pybullet
+    	err=err+$?
+    	
+    	
+    	if [ $err -gt 0 ];
+        	then
+        	echo Error during installation of pybullet
+        	break
+    	fi
+    	
     	echo -------------------------------------------------------------
         echo All dependencies installed
         echo -------------------------------------------------------------
