@@ -48,6 +48,7 @@ def main():
     parser.add_argument("file_name_out",  default="weights.weights")
     args = parser.parse_args()
     print(args.file_name_out)
+    print("Weights taken from: ", args.file_name_in)
     export_weight(args.file_name_in, args.file_name_out)
 
 if __name__ == '__main__':

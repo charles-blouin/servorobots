@@ -11,6 +11,8 @@ while [ "$1" != "" ]; do
         -v | --version )        shift
                                 version=$1
                                 ;;
+        -T | --test )           action=5
+                                ;;
         -W | --play-weights )   action=4
                                 ;;
         -w | --weights )        action=3
@@ -31,8 +33,18 @@ done
 me=`basename "$0"`$version
 cd ..
 
+# Play from latest checkpoint
+if [ $action = 5 ]
+then
+    latest_file=$(ls results/${me}/checkpoints/ | tail -1)
+    echo Now playing
+    python3 run_no_env.py --alg=ppo2 --env=RCB_balancer-v0 --network=mlp2x32 --num_timesteps=100 \
+    --load_path results/${me}/checkpoints/${latest_file} \
+    ent_coef=10 \
+    --play
+
 # Play weights
-if [ $action = 4 ]
+elif [ $action = 4 ]
 then
     python3 balancer_test.py results/${me}/weight.weights tanh
 

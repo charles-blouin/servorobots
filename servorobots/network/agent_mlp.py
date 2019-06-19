@@ -34,7 +34,7 @@ class AgentMLP:
         wf = tf.constant(weight_list["wf"], dtype=tf.float32)
         bf = tf.constant(weight_list["bf"], dtype=tf.float32)
         # [1, 32] x [32, 1] + [1, 1] = [1, 1]
-        self.x = activation(tf.matmul(self.x1, wf) + bf)
+        self.x = tf.matmul(self.x1, wf) + bf
 
     def act(self, sess, obs):
         action = sess.run(self.x, feed_dict={self.obs_tf: [obs]})

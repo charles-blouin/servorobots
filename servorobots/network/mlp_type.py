@@ -58,7 +58,7 @@ def mlp2x16(num_layers=2, num_hidden=16, activation=tf.nn.relu, layer_norm=False
 
 # For testing
 @register("mlp2x2")
-def mlp2x16(num_layers=2, num_hidden=2, activation=tf.nn.tanh, layer_norm=False):
+def mlp2x2(num_layers=2, num_hidden=2, activation=tf.nn.tanh, layer_norm=False):
     """
     Simple fully connected layer policy. Separate stacks of fully-connected layers are used for policy and value function estimation.
     More customized fully-connected policies can be obtained by using PolicyWithV class directly.
