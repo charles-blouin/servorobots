@@ -25,8 +25,8 @@
             <geometry>
                 <box size="0.25 0.1 0.04"/>
             </geometry>
-            <material name="white">
-                <color rgba="1 1 1 1"/>
+            <material name="yellow">
+                <color rgba="1 1 0 1"/>
             </material>
         </visual>
         <collision>
@@ -48,8 +48,8 @@
           <geometry>
                     <cylinder length="0.02" radius="0.04"/>
           </geometry>
-           <material name="white">
-            <color rgba="1 1 1 1"/>
+           <material name="red">
+            <color rgba="1 0 0 1"/>
           </material>
         </visual>
         <collision>
@@ -78,8 +78,8 @@
           <geometry>
                     <cylinder length="0.02" radius="0.04"/>
           </geometry>
-           <material name="white">
-            <color rgba="1 1 1 1"/>
+           <material name="green">
+            <color rgba="0 1 0 1"/>
           </material>
         </visual>
         <collision>

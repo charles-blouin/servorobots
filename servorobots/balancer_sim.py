@@ -94,7 +94,7 @@ class BalancerEnv(gym.Env):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
-    def _step(self, action):
+    def step(self, action):
 
         for i in range(0,1):
             #print(action)
@@ -176,7 +176,7 @@ class BalancerEnv(gym.Env):
             #print(self.state)
         return np.array(self.state), reward, done, {}
 
-    def _reset(self):
+    def reset(self):
         p.resetSimulation()
 
         self.number_times_ground_touched = 0
@@ -206,13 +206,10 @@ class BalancerEnv(gym.Env):
                                flags=p.URDF_USE_INERTIA_FROM_FILE)
 
         p.changeDynamics(self.quad, -1, lateralFriction=0.3, restitution=0.5)
-        p.changeVisualShape(self.quad, -1, rgbaColor=[1, 1, 0, 1]) # yellow
 
         p.changeDynamics(self.quad, 0, lateralFriction=2, restitution=0.0)
-        p.changeVisualShape(self.quad, 0, rgbaColor=[1, 0, 0, 1]) # red
 
         p.changeDynamics(self.quad, 1, lateralFriction=2, restitution=0.0)
-        p.changeVisualShape(self.quad, 1, rgbaColor=[0, 1, 0, 1])  # blue
 
         filename = os.path.join(pybullet_data.getDataPath(), "plane_stadium.sdf")
         self.ground_plane_mjcf = p.loadSDF(filename)
@@ -260,11 +257,5 @@ class BalancerEnv(gym.Env):
         self.state = tuple([vel_right, vel_left]) + local_rot_vel + tuple(acc)
         return np.array(self.state)
 
-    def _render(self, mode='human', close=False):
+    def render(self, mode='human', close=False):
         return
-
-    if parse_version(gym.__version__)>=parse_version('0.9.6'):
-        render = _render
-        reset = _reset
-        seed = _seed
-        step = _step
