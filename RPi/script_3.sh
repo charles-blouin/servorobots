@@ -93,5 +93,8 @@
         # git clone https://github.com/pololu/balboa-32u4-arduino-library
         # mv balboa-32u4-arduino-library Balboa32U4
         
+        # cmd upload
+        # /opt/arduino-1.8.8/arduino --board 'pololu-a-star:avr:a-star32U4' --port /dev/ttyACM0 --upload /opt/arduino-1.8.8/examples/01.Basics/Blink/blink.ino
+        
 	break
 	done
