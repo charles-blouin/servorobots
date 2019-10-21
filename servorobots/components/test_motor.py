@@ -174,6 +174,7 @@ class MotorTest:
         p.stepSimulation()
 
 
+
     def reset(self):
 
         p.resetSimulation()
@@ -194,6 +195,73 @@ class MotorTest:
 
         p.setGravity(0,0, self.gravity)
         p.setTimeStep(self.timeStep)
+        p.setRealTimeSimulation(0)
+
+        filename = os.path.join(pybullet_data.getDataPath(), "plane_stadium.sdf")
+        # self.ground_plane_mjcf = p.loadSDF(filename)
+
+
+class CharacterizeMotor:
+    def __init__(self, max_motor_in = 400, frame_length = 0.02, GUI = 0):
+        if GUI:
+            p.connect(p.GUI)
+        else:
+            p.connect(p.DIRECT)
+        self.frame_length = frame_length
+        self.gravity = -9.8
+        self.time = 0
+        self.max_motor_in = max_motor_in
+
+        self.motor_1 = GearedDcMotor(R=22, Kv=8, K_viscous=0.0005, K_load=0, timestep = self.frame_length, latency=0.02)
+
+
+    def step(self, action):
+        self.time = self.time + self.frame_length
+
+        base_voltage = action[0]
+        command_in = action[1]
+        frictionForce = 0
+
+        applied_Voltage = command_in * base_voltage / self.max_motor_in
+
+        # Calculate motor output torque and current
+        pos, vel, _, _ = p.getJointState(self.wheel, 1)
+        motor_torque, motor_current = self.motor_1.torque_from_voltage(TimestampInput(applied_Voltage, self.time), vel)
+
+        # apply a joint torque from motor
+        p.setJointMotorControl2(self.wheel, 1, p.TORQUE_CONTROL, force=motor_torque)
+
+        # set the joint friction
+        p.setJointMotorControl2(self.wheel, 1, p.VELOCITY_CONTROL, targetVelocity=0, force=frictionForce)
+
+        if self.frame_length == 0.01:
+            p.stepSimulation()
+        elif self.frame_length == 0.02:
+            p.stepSimulation()
+            p.stepSimulation()
+        else:
+            raise Exception('Choose a valid timestep or fix the code logic to step in the sim!')
+        pos, vel, _, _ = p.getJointState(self.wheel, 1)
+
+        return pos, vel
+
+
+    def reset(self, R=22, Kv=8):
+
+        p.resetSimulation()
+
+        self.motor_1 = GearedDcMotor(R=R, Kv=Kv, K_viscous=0.0005, K_load=0, timestep=self.frame_length, latency=0.02)
+
+        # Loading the model and initial pose
+        wheel_dir = os.path.join(currentdir, "motor_test_01.urdf")
+        self.wheel = p.loadURDF(wheel_dir, flags=p.URDF_USE_INERTIA_FROM_FILE)
+
+        p.changeDynamics(self.wheel, -1, linearDamping=0, angularDamping=0)
+        for j in range(p.getNumJoints(self.wheel)):
+            p.changeDynamics(self.wheel, j, linearDamping=0, angularDamping=0)
+
+        p.setGravity(0,0, self.gravity)
+        p.setTimeStep(0.01)
         p.setRealTimeSimulation(0)
 
         filename = os.path.join(pybullet_data.getDataPath(), "plane_stadium.sdf")
