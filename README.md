@@ -13,3 +13,18 @@ python3 run.py --alg=ppo2 --env=RoboschoolHalfCheetah-v1 --network=mlp --num_tim
 To simplify the install process, install this docker container:
 
 https://github.com/eric-heiden/deep-rl-docker
+
+
+Create a new venv with python 3.7
+''''
+activate
+in the root
+pip install ffmpeg gym
+pip install tensorflow==1.15rc2
+cd ..
+git clone https://github.com/openai/baselines
+cd baselines
+pip install -e .
+cd ../servorobots
+''''
+
