@@ -16,15 +16,14 @@ https://github.com/eric-heiden/deep-rl-docker
 
 
 Create a new venv with python 3.7
-''''
+
 activate
 in the root
-pip install ffmpeg gym
-pip install tensorflow==1.15rc2
-cd ..
-git clone https://github.com/openai/baselines
-cd baselines
-pip install -e .
-cd ../servorobots
-''''
+>pip install ffmpeg gym
+>pip install tensorflow==1.15rc2
+>cd ..
+>git clone https://github.com/openai/baselines
+>cd baselines
+>pip install -e .
+>cd ../servorobots
 
