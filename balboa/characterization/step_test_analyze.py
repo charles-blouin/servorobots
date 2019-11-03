@@ -8,7 +8,7 @@ import scipy.optimize as opt
 # should be run from the top servorobots folder with
 # python -m balboa.characterization.step_test_analyze
 import time
-
+print("hi!")
 file_name = 'balboa/characterization/step_test.txt'
 gear_ratio = 1322
 fps = 50
