@@ -16,4 +16,21 @@ https://github.com/eric-heiden/deep-rl-docker
 
 
 For gpu support, need VS 2017 https://my.visualstudio.com/Downloads?q=visual%20studio%202017&wt.mc_id=o~msft~vscom~older-downloads
+Create a new venv with python 3.7
+
+activate
+in the root
+>pip install ffmpeg gym
+
+>pip install tensorflow==1.15rc2
+
+>cd ..
+
+>git clone https://github.com/openai/baselines
+
+>cd baselines
+
+>pip install -e .
+
+>cd ../servorobots
 
