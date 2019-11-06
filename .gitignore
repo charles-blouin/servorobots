@@ -105,6 +105,7 @@ venv.bak/
 
 # Test results
 results/
+*.zip
 
 # Pycharm
 .idea/

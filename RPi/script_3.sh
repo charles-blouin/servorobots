@@ -57,14 +57,22 @@
     	
     	pip install pybullet
     	err=err+$?
-    	
-    	
     	if [ $err -gt 0 ];
         	then
         	echo Error during installation of pybullet
         	break
     	fi
-    	
+
+      sudo apt-get install libjpeg-dev zlib1g-dev
+      pip3 install Pillow
+    	pip3 install stable-baselines
+    	err=err+$?
+    	if [ $err -gt 0 ];
+        	then
+        	echo Error during installation of pybullet
+        	break
+    	fi
+
     	echo -------------------------------------------------------------
         echo All dependencies installed
         echo -------------------------------------------------------------

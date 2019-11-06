@@ -13,3 +13,7 @@ python3 run.py --alg=ppo2 --env=RoboschoolHalfCheetah-v1 --network=mlp --num_tim
 To simplify the install process, install this docker container:
 
 https://github.com/eric-heiden/deep-rl-docker
+
+
+For gpu support, need VS 2017 https://my.visualstudio.com/Downloads?q=visual%20studio%202017&wt.mc_id=o~msft~vscom~older-downloads
+

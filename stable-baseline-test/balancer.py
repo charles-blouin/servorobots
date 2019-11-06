@@ -1,17 +1,24 @@
 import gym
 
 from stable_baselines.common.policies import MlpPolicy
-from stable_baselines.common.vec_env import DummyVecEnv
+from stable_baselines.common.vec_env import SubprocVecEnv
 from stable_baselines import PPO2
+if __name__ == '__main__':
+    # multiprocess environment
+    n_cpu = 1
+    env = SubprocVecEnv([lambda: gym.make('CartPole-v1') for i in range(n_cpu)])
 
-env = gym.make('CartPole-v1')
-env = DummyVecEnv([lambda: env])  # The algorithms require a vectorized environment to run
+    model = PPO2(MlpPolicy, env, verbose=1)
+    model.learn(total_timesteps=25000)
+    model.save("ppo2_cartpole")
 
-model = PPO2(MlpPolicy, env, verbose=1)
-model.learn(total_timesteps=10000)
+    del model # remove to demonstrate saving and loading
 
-obs = env.reset()
-for i in range(1000):
-    action, _states = model.predict(obs)
-    obs, rewards, dones, info = env.step(action)
-    env.render()
+    model = PPO2.load("ppo2_cartpole")
+
+    # Enjoy trained agent
+    obs = env.reset()
+    while True:
+        action, _states = model.predict(obs)
+        obs, rewards, dones, info = env.step(action)
+        env.render()
