@@ -12,13 +12,13 @@ if __name__ == '__main__':
     n_cpu = 1
 
     env = SubprocVecEnv([lambda: env for i in range(n_cpu)])
-    model = PPO2.load("ppo2_cartpole")
+    model = PPO2.load("stable_baseline_test/ppo2_cartpole")
     print(env)
     # Enjoy trained agent
     obs = env.reset()
     while True:
         a = time.time()
         action, _states = model.predict(obs)
-        print(time.time()-a)
+        # print(time.time()-a)
         obs, rewards, dones, info = env.step(action)
         env.render()

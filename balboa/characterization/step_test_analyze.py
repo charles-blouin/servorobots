@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import json
 import servorobots.components.test_motor as motor
 
+
 import scipy.optimize as opt
 
 # should be run from the top servorobots folder with

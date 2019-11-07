@@ -10,6 +10,7 @@ from gym import spaces, logger
 from gym.utils import seeding
 import numpy as np
 
+import servorobots.tools.utils as utils
 
 class CartPoleEnv(gym.Env):
     """
@@ -50,13 +51,19 @@ class CartPoleEnv(gym.Env):
     }
 
     def __init__(self):
-        self.gravity = 9.8
-        self.masscart = 1.0
-        self.masspole = 0.1
-        self.total_mass = (self.masspole + self.masscart)
-        self.length = 0.5  # actually half the pole's length
-        self.polemass_length = (self.masspole * self.length)
-        self.force_mag = 10.0
+        self.difficulty = 0
+        # Randomized parameters
+        self.gravity = utils.ParamRandomizer(9.8, 0.2)
+        self.masscart = utils.ParamRandomizer(1.0, 0.2)
+        self.masspole = utils.ParamRandomizer(0.1, 0.05)
+        self.length = utils.ParamRandomizer(0.5, 0.3)  # actually half the pole's length
+        self.force_mag = utils.ParamRandomizer(10.0, 1)
+
+
+        #Derived parameters. ADD TO RESET TOO!
+        self.total_mass = (self.masspole.value + self.masscart.value)
+        self.polemass_length = (self.masspole.value * self.length.value)
+
         self.tau = 0.02  # seconds between state updates
         self.kinematics_integrator = 'euler'
 
@@ -80,6 +87,28 @@ class CartPoleEnv(gym.Env):
 
         self.steps_beyond_done = None
 
+    def reset(self, difficulty=0):
+        self.difficulty = difficulty
+        # Parameters to randomize
+
+        self.gravity.randomize(difficulty)
+        self.masscart.randomize(difficulty)
+        self.masspole.randomize(difficulty)
+        self.length.randomize(difficulty)  # actually half the pole's length
+        self.force_mag.randomize(difficulty)
+
+        # Recalculate
+        self.total_mass = (self.masspole.value + self.masscart.value)
+        self.polemass_length = (self.masspole.value * self.length.value)
+
+
+        self.state = self.np_random.uniform(low=-0.05, high=0.05, size=(4,))
+        self.steps_beyond_done = None
+
+
+
+        return np.array(self.state)
+
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
@@ -88,12 +117,12 @@ class CartPoleEnv(gym.Env):
         assert self.action_space.contains(action), "%r (%s) invalid" % (action, type(action))
         state = self.state
         x, x_dot, theta, theta_dot = state
-        force = self.force_mag if action == 1 else -self.force_mag
+        force = self.force_mag.value if action == 1 else -self.force_mag.value
         costheta = math.cos(theta)
         sintheta = math.sin(theta)
         temp = (force + self.polemass_length * theta_dot * theta_dot * sintheta) / self.total_mass
-        thetaacc = (self.gravity * sintheta - costheta * temp) / (
-                    self.length * (4.0 / 3.0 - self.masspole * costheta * costheta / self.total_mass))
+        thetaacc = (self.gravity.value * sintheta - costheta * temp) / (
+                    self.length.value * (4.0 / 3.0 - self.masspole.value * costheta * costheta / self.total_mass))
         xacc = temp - self.polemass_length * thetaacc * costheta / self.total_mass
         if self.kinematics_integrator == 'euler':
             x = x + self.tau * x_dot
@@ -127,10 +156,7 @@ class CartPoleEnv(gym.Env):
 
         return np.array(self.state), reward, done, {}
 
-    def reset(self):
-        self.state = self.np_random.uniform(low=-0.05, high=0.05, size=(4,))
-        self.steps_beyond_done = None
-        return np.array(self.state)
+
 
     def render(self, mode='human'):
         screen_width = 600
@@ -140,7 +166,7 @@ class CartPoleEnv(gym.Env):
         scale = screen_width / world_width
         carty = 100  # TOP OF CART
         polewidth = 10.0
-        polelen = scale * (2 * self.length)
+        polelen = scale * (2 * self.length.value)
         cartwidth = 50.0
         cartheight = 30.0
 

@@ -11,10 +11,10 @@ register(
 '''
 register(
     id='InvertedPendulum-v0',
-    entry_point='stable-baseline-test:CartPoleEnv',
+    entry_point='stable_baseline_test:CartPoleEnv',
     max_episode_steps=1000,
     reward_threshold=950.0,
     tags={ "pg_complexity": 1*1000000 },
     )
 
-from stable-baseline-test.gym_modified_pendulum import CartPoleEnv
+from stable_baseline_test.gym_modified_pendulum import CartPoleEnv

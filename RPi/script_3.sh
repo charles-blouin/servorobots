@@ -64,6 +64,7 @@
     	fi
 
       sudo apt-get install libjpeg-dev zlib1g-dev
+      sudo apt install libjasper1 libqtgui4 libqt4-test
       pip3 install Pillow
     	pip3 install stable-baselines
     	err=err+$?
