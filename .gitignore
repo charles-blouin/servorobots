@@ -106,6 +106,7 @@ venv.bak/
 # Test results
 results/
 *.zip
+PPO2_cartpole_tensorboard/
 
 # Pycharm
 .idea/
