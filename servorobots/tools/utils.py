@@ -6,7 +6,7 @@ class ParamRandomizer:
     # 1 means that the value used by the simulation is random over the whole confidence interval.
     def __init__(self, default, confidence_95_pc, difficulty = 0):
         self.__default = default
-        self.__difficulty = self.set_difficulty(difficulty)
+        self.difficulty = self.set_difficulty(difficulty)
         self.value = default
         self.confidence_95_pc = confidence_95_pc
         self.randomize(difficulty)
@@ -20,7 +20,7 @@ class ParamRandomizer:
         return difficulty
 
     def randomize(self, difficulty):
-        self.__difficulty = self.set_difficulty(difficulty)
+        self.difficulty = self.set_difficulty(difficulty)
 
         min_pick = self.__default - self.confidence_95_pc * difficulty
         max_pick = self.__default + self.confidence_95_pc * difficulty
