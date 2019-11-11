@@ -32,7 +32,15 @@ register(
     max_episode_steps=1000,
     reward_threshold=950.0,
     tags={ "pg_complexity": 1*1000000 },
-    kwargs={'difficulty': 1},
+    kwargs={'latency': 0.0},
+    )
+register(
+    id='Pendulum-v2',
+    entry_point='stable_baseline_test:PendulumEnv',
+    max_episode_steps=1000,
+    reward_threshold=950.0,
+    tags={ "pg_complexity": 1*1000000 },
+    kwargs={'latency': 0.1},
     )
 
 from stable_baseline_test.gym_modified_pendulum import CartPoleEnv

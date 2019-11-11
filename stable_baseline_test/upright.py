@@ -15,7 +15,7 @@ class PendulumEnv(gym.Env):
         'video.frames_per_second' : 30
     }
 
-    def __init__(self, g=10.0, difficulty=1):
+    def __init__(self, g=10.0, latency=0):
 
 
         self.max_speed = 8
@@ -26,10 +26,10 @@ class PendulumEnv(gym.Env):
         self.m = 1.
         self.l = 1.
         self.viewer = None
-        self.motor = GearedDcMotor(R=4, Kv=5, K_viscous=0.0006, K_load=3, timestep=self.dt, latency=0.1, V_max=1000)
+        self.motor = GearedDcMotor(R=4, Kv=5, K_viscous=0.0006, K_load=3, timestep=self.dt, latency=latency, V_max=1000)
 
         high = np.array([1., 1., self.max_speed])
-        self.action_space = spaces.Box(low=-1, high=1, shape=(2,), dtype=np.float32)
+        self.action_space = spaces.Box(low=-1, high=1, shape=(1,), dtype=np.float32)
         self.observation_space = spaces.Box(low=-high, high=high, dtype=np.float32)
 
         self.seed()
