@@ -30,7 +30,7 @@ if __name__ == '__main__':
         # When using VecEnv, done is a vector
         done = [False for _ in range(env.num_envs)]
         while True:
-            action, _states = model.predict(obs)
+            action, _states = model.predict(obs, deterministic=True)
             obs, rewards, dones, info = env.step(action)
             env.render()
     else:
