@@ -35,9 +35,13 @@ if __name__ == '__main__':
     generate_checkpoint_from_model(model, "results/test/full_model")
     converter = tf.lite.TFLiteConverter.from_saved_model("results/test/full_model")
     tflite_model = converter.convert()
+    open("results/test/full_model/converted_model.tflite", "wb").write(tflite_model)
+    # open("results/test/full_model/converted_model.tflite", "wb").read(tflite_model)
 
     #### Interpreter ####
-    interpreter = tf.lite.Interpreter(model_content=tflite_model)
+    # interpreter = tf.lite.Interpreter(model_content=tflite_model)
+    interpreter = tf.lite.Interpreter(model_path="results/test/full_model/converted_model.tflite")
+
     interpreter.allocate_tensors()
 
     input_details = interpreter.get_input_details()
