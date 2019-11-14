@@ -73,6 +73,8 @@
         	echo Error during installation of pybullet
         	break
     	fi
+    	wget https://dl.google.com/coral/python/tflite_runtime-1.14.0-cp35-cp35m-linux_armv7l.whl
+    	pip3 install tflite_runtime-1.14.0-cp35-cp35m-linux_armv7l.whl
 
     	echo -------------------------------------------------------------
         echo All dependencies installed

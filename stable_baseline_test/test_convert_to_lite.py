@@ -40,6 +40,8 @@ if __name__ == '__main__':
 
     #### Interpreter ####
     # interpreter = tf.lite.Interpreter(model_content=tflite_model)
+    # On Raspberry Pi: import tflite_runtime.interpreter as tflite
+    #
     interpreter = tf.lite.Interpreter(model_path="results/test/full_model/converted_model.tflite")
 
     interpreter.allocate_tensors()
