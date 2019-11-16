@@ -3,18 +3,17 @@ import matplotlib.pyplot as plt
 import json
 import servorobots.components.test_motor as motor
 
-
+# This file opens a step_test output file and finds the motor constants that fit the motors best.
 import scipy.optimize as opt
 
 # should be run from the top servorobots folder with
 # python -m balboa.characterization.step_test_analyze
 import time
-print("hi!")
+
 file_name = 'balboa/characterization/step_test.txt'
 gear_ratio = 1322
 fps = 50
 frame_length = 1/fps
-episode_length = 3 # in seconds
 
     
 with open(file_name, 'r') as filehandle:
@@ -24,17 +23,14 @@ with open(file_name, 'r') as filehandle:
     velocities = np.array(tr["velocities"])
     motors = np.array(tr["motors"])
     voltages = np.array(tr["voltages"])
-    
-    
-print(encoders[0:3, 0])
 
 sim_pos = []
 sim_vel = []
 
-
+# For simulation
 m = motor.CharacterizeMotor(frame_length=frame_length)
 
-def to_opt(arg):
+def to_opt(arg, motor_id):
     R = arg[0]
     Kv = arg[1]
 
@@ -44,29 +40,58 @@ def to_opt(arg):
 
     timestamps_iter = np.nditer(timestamps, ['c_index'])
     for timestamp in timestamps_iter:
-        pos, vel = m.step([voltages[timestamps_iter.index], motors[timestamps_iter.index, 0]])
-        y = y + (pos/2/3.1415 - encoders[timestamps_iter.index, 0]) ** 2
+        pos, vel = m.step([voltages[timestamps_iter.index], motors[timestamps_iter.index, motor_id]])
+        y = y + (pos/2/3.1415 - encoders[timestamps_iter.index, motor_id]) ** 2
 
     return y
+## For motor 0
+# Optimizing R and Kv.
 bnds = ((20, 60), (7, 9))
-x = opt.minimize(to_opt, [22, 8], bounds=bnds)
 
-print(x)
-m.reset(R=40.2, Kv=9)
-timestamps_iter = np.nditer(timestamps, ['c_index'])
-for timestamp in timestamps_iter:
-    pos, vel = m.step([voltages[timestamps_iter.index], motors[timestamps_iter.index, 0]])
-    sim_pos.append(pos/2/3.1415)
-    sim_vel.append(vel / 2 / 3.1415)
+args = (0) # Motor 0
+motor_0 = opt.minimize(to_opt, [22, 8], bounds=bnds, args=args)
+print("Motor 0 R and Kv:")
+print(motor_0.x)
+
+## For motor 1
+# Optimizing R and Kv.
+args = (1) # Motor 1
+motor_1 = opt.minimize(to_opt, [22, 8], bounds=bnds, args=args)
+print("Motor 1 R and Kv:")
+print(motor_1.x)
 
 
+# Simulate motor 0 and 1 with constants found
+def sim_motor(motor_id, motor_constants, frame_length=frame_length):
+    m = motor.CharacterizeMotor(frame_length=frame_length)
+    sim_pos = []
+    sim_vel = []
+    m.reset(R=motor_constants.x[0], Kv=motor_constants.x[1])
+    timestamps_iter = np.nditer(timestamps, ['c_index'])
+    for timestamp in timestamps_iter:
+        pos, vel = m.step([voltages[timestamps_iter.index], motors[timestamps_iter.index, motor_id]])
+        sim_pos.append(pos/2/3.1415)
+        sim_vel.append(vel / 2 / 3.1415)
+    return (sim_pos, sim_vel)
+
+
+(sim_pos_0, sim_vel_0) = sim_motor(0, motor_0)
+(sim_pos_1, sim_vel_1) = sim_motor(1, motor_1)
+
+# Plot simulated and real results
 fig, axs = plt.subplots(2, 1)
-
-axs[0].plot(timestamps, encoders[:, 0], timestamps, encoders[:, 1],
-            timestamps, sim_pos)
+axs[0].plot(timestamps, encoders[:, 0], "-", label="Real 0")
+axs[0].plot(timestamps, encoders[:, 1], label="Real 1")
+axs[0].plot(timestamps, sim_pos_0, label="Simulated 0")
+axs[0].plot(timestamps, sim_pos_1, label="Simulated 1")
 axs[0].set_xlabel('Time')
 axs[0].set_ylabel('Encoders')
 axs[0].grid(True)
-axs[1].plot(timestamps, velocities[:, 0], timestamps, velocities[:, 1], timestamps, sim_vel)
+axs[0].legend(loc='upper left')
+axs[1].plot(timestamps, velocities[:, 0], label="Real 0")
+axs[1].plot(timestamps, velocities[:, 1], label="Real 1")
+axs[1].plot(timestamps, sim_vel_0, label="Simulated 0")
+axs[1].plot(timestamps, sim_vel_1, label="Simulated 1")
+axs[1].legend(loc='upper left')
 fig.tight_layout()
 plt.show()

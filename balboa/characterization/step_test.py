@@ -17,7 +17,6 @@ voltages = []
 start_time = time.time()
 
 
-
 start_encoder = a_star.read_encoders()
 start_rot = [start_encoder[0]/ gear_ratio, start_encoder[1]/ gear_ratio]
 previous_rot = [0, 0]
