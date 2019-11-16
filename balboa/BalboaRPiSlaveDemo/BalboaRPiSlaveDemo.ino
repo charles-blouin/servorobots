@@ -31,13 +31,15 @@ struct Data
 
   int16_t leftMotor, rightMotor;
   uint16_t batteryMillivolts;
-  uint16_t analog[6];
+  int32_t leftTimeForVelocity, rightTimeForVelocity;
+  int16_t leftEncoder, rightEncoder;
+  // uint16_t analog[6];
 
   bool playNotes;
   char notes[14];
   
   // Encoders are unused in this example.
-  int16_t leftEncoder, rightEncoder;
+
 };
 
 PololuRPiSlave<struct Data,5> slave;
@@ -71,10 +73,13 @@ void loop()
   // Change this to readBatteryMillivoltsLV() for the LV model.
   slave.buffer.batteryMillivolts = readBatteryMillivolts();
 
+/*
   for(uint8_t i=0; i<6; i++)
   {
     slave.buffer.analog[i] = analogRead(i);
   }
+*/
+
 
   // READING the buffer is allowed before or after finalizeWrites().
   ledYellow(slave.buffer.yellow);
@@ -84,6 +89,8 @@ void loop()
   
   slave.buffer.leftEncoder = encoders.getCountsLeft();
   slave.buffer.rightEncoder = encoders.getCountsRight();
+  slave.buffer.leftTimeForVelocity = encoders.getTimeSinceReadingLeft();
+  slave.buffer.rightTimeForVelocity = encoders.getTimeSinceReadingRight();
 
   // Playing music involves both reading and writing, since we only
   // want to do it once.
