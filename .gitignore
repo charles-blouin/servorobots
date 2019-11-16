@@ -107,6 +107,7 @@ venv.bak/
 results/
 *.zip
 PPO2_cartpole_tensorboard/
+*.tflite
 
 # Pycharm
 .idea/
