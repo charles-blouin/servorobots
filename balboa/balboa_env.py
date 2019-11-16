@@ -65,9 +65,9 @@ class BalboaEnvMotor(gym.Env):
 
 
     def step(self, action):
-        
+        np.clip(action, -1, 1)
         # Step the environment
-        # comms.motors(action[0], action[1])
+        self.comms.motors(action[0]*self.max_PWM_value, action[1]*self.max_PWM_value)
         
         self.balboa_state.read_balboa_sensor()
         
