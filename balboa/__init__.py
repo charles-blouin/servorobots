@@ -10,4 +10,7 @@ register(
     )
 
 
-from balboa.balboa_env import BalboaEnvMotor
+import sys
+# Check if on Raspberry Pi
+if 'smbus' in sys.modules:
+    from balboa.balboa_env import BalboaEnvMotor
