@@ -22,61 +22,46 @@ static volatile bool errorRight;
 // signed integer overflow is undefined behavior in C++.
 static volatile uint16_t countLeft;
 static volatile uint16_t countRight;
-static volatile uint32_t timeLeft;
-static volatile uint32_t timeRight;
-static volatile int32_t timeBetweenTicksLeft;
-static volatile int32_t timeBetweenTicksRight;
-static volatile uint32_t oldTimeLeft;
-static volatile uint32_t oldTimeRight;
+static volatile uint32_t interruptTimeLeft;
+static volatile uint32_t interruptTimeRight;
+static volatile uint32_t timestampsLeft;
+static volatile uint32_t timestampsRight;
 
 
 ISR(PCINT0_vect)
 {
     bool newLeftB = FastGPIO::Pin<LEFT_B>::isInputHigh();
     bool newLeftA = FastGPIO::Pin<LEFT_XOR>::isInputHigh() ^ newLeftB;
-    timeLeft = micros();
+    interruptTimeLeft = micros();
 
-    int16_t increment = (lastLeftA ^ newLeftB) - (newLeftA ^ lastLeftB);
-    countLeft += increment;
+    countLeft += (lastLeftA ^ newLeftB) - (newLeftA ^ lastLeftB);
 
     if((lastLeftA ^ newLeftA) & (lastLeftB ^ newLeftB))
     {
         errorLeft = true;
     }
-    
-    timeBetweenTicksLeft = timeLeft - oldTimeLeft;
-    if (increment < 0) {
-        timeBetweenTicksLeft = -timeBetweenTicksLeft;
-    }
 
     lastLeftA = newLeftA;
     lastLeftB = newLeftB;
-    oldTimeLeft = timeLeft;
 }
 
 static void rightISR()
 {
     bool newRightB = FastGPIO::Pin<RIGHT_B>::isInputHigh();
     bool newRightA = FastGPIO::Pin<RIGHT_XOR>::isInputHigh() ^ newRightB;
-    timeRight = micros();
+    interruptTimeRight = micros();
 
-    uint16_t increment = (lastRightA ^ newRightB) - (newRightA ^ lastRightB);
-    countRight += increment;
+    countRight += (lastRightA ^ newRightB) - (newRightA ^ lastRightB);
 
     if((lastRightA ^ newRightA) & (lastRightB ^ newRightB))
     {
         errorRight = true;
     }
     
-    timeBetweenTicksRight = timeRight - oldTimeRight;
-    if (increment < 0) {
-        timeBetweenTicksRight = -timeBetweenTicksRight;
-    }
     
 
     lastRightA = newRightA;
     lastRightB = newRightB;
-    oldTimeRight = timeRight;
 }
 
 void Balboa32U4Encoders::init2()
@@ -118,6 +103,7 @@ int16_t Balboa32U4Encoders::getCountsLeft()
 
     cli();
     int16_t counts = countLeft;
+    timestampsLeft = interruptTimeLeft;
     sei();
     return counts;
 }
@@ -128,28 +114,19 @@ int16_t Balboa32U4Encoders::getCountsRight()
 
     cli();
     int16_t counts = countRight;
+    timestampsRight = interruptTimeRight;
     sei();
     return counts;
 }
 
-int32_t Balboa32U4Encoders::getTimeSinceReadingLeft()
+uint32_t Balboa32U4Encoders::getTimestampLeft()
 {
-    
-    uint32_t timeSinceLastTick = micros() -  timeLeft;
-    if (timeSinceLastTick > abs(timeBetweenTicksLeft)) {
-        timeBetweenTicksLeft = timeSinceLastTick;
-    }
-    return timeBetweenTicksLeft;
+    return timestampsLeft;
 }
 
-int32_t Balboa32U4Encoders::getTimeSinceReadingRight()
+uint32_t Balboa32U4Encoders::getTimestampRight()
 {
-
-    uint32_t timeSinceLastTick = micros() -  timeRight;
-    if (timeSinceLastTick > abs(timeBetweenTicksRight)) {
-        timeBetweenTicksRight = timeSinceLastTick;
-    }
-    return timeBetweenTicksRight;
+    return timestampsRight;
 }
 
 int16_t Balboa32U4Encoders::getCountsAndResetLeft()
