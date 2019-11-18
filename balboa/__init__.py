@@ -10,7 +10,11 @@ register(
     )
 
 
-import sys
+import os
 # Check if on Raspberry Pi
-if 'smbus' in sys.modules:
-    from balboa.balboa_env import BalboaEnvMotor
+print("here")
+try:
+    if (os.uname()[4].startswith("arm")):
+        from balboa.balboa_env import BalboaEnvMotor
+except:
+    print("Balboa environment not available, we are not on a RPi")

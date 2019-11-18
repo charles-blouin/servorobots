@@ -8,13 +8,14 @@ class BalboaState:
     def __init__(self, comms):
         self.gear_ratio = 1322
 
-        self.reset_encoders()
+        self.comms = comms
+        
+        self.comms.reset_encoders()
         self.previous_rot_left = 0
         self.previous_rot_right = 0
         self.previous_timestamp_left = 0
         self.previous_timestamp_right = 0
         
-        self.comms = comms
         self.read_balboa_sensor()
 
     def read_balboa_sensor(self):
@@ -22,11 +23,20 @@ class BalboaState:
         self.rot_left = self.rot_left/self.gear_ratio * 6.29184 # in rad
         self.rot_right = self.rot_right/self.gear_ratio * 6.29184 # in rad
 
-        self.vel_left = (self.rot_left - self.previous_rot_left) / \
-                        (self.timestamp_left - self.previous_timestamp_left) * 1000000
-        self.vel_right = (self.rot_right - self.previous_rot_right) / \
-                        (self.timestamp_right - self.previous_timestamp_right) * 1000000
 
+        if (self.timestamp_left == self.previous_timestamp_left):
+            self.vel_left = 0
+        else:
+            self.vel_left = (self.rot_left - self.previous_rot_left) / \
+                            (self.timestamp_left - self.previous_timestamp_left) * 1000000
+            
+        if (self.timestamp_right == self.previous_timestamp_right):
+            self.vel_right = 0
+        else:
+            self.vel_right = (self.rot_right - self.previous_rot_right) / \
+                             (self.timestamp_right - self.previous_timestamp_right) * 1000000
+        
+        
         self.previous_rot_left = self.rot_left
         self.previous_rot_right = self.rot_right
         self.previous_timestamp_left = self.timestamp_left
@@ -80,7 +90,9 @@ class BalboaEnvMotor(gym.Env):
     def step(self, action):
         np.clip(action, -1, 1)
         # Step the environment
-        self.comms.motors(action[0]*self.max_PWM_value, action[1]*self.max_PWM_value)
+        left = round(action[0]*self.max_PWM_value)
+        right = round(action[1]*self.max_PWM_value)
+        self.comms.motors(left, right)
         
         self.balboa_state.read_balboa_sensor()
         
@@ -89,6 +101,7 @@ class BalboaEnvMotor(gym.Env):
         return self.balboa_state.state_vector(), reward, done, {}
         
     def reset(self):
+        self.comms.reset_encoders()
         self.balboa_state.read_balboa_sensor()
         return self.balboa_state.state_vector()
         

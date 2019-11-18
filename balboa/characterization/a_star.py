@@ -50,7 +50,7 @@ class AStar:
     return self.read_unpack(12, 12, 'LLhh')
 
   def reset_encoders(self):
-    self.write_pack(1, 'B', 1)
+    self.write_pack(24, 'B', 1)
     
   def play_notes(self, notes):
     self.write_pack(25, 'B15s', 1, notes.encode("ascii"))
