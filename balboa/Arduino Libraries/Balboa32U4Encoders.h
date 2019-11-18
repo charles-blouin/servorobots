@@ -64,8 +64,8 @@ public:
     /*! For performance reasons, velocity is not calculated on the board.
      *  Only the time in microseconds since the last call to getCounts is 
      *  provided*/
-    static int32_t getTimeSinceReadingLeft();
-    static int32_t getTimeSinceReadingRight();
+    static uint32_t getTimestampLeft();
+    static uint32_t getTimestampRight();
 
     /*! This function is just like getCountsLeft() except it also clears the
      *  counts before returning.  If you call this frequently enough, you will

@@ -31,8 +31,9 @@ struct Data
 
   int16_t leftMotor, rightMotor;
   uint16_t batteryMillivolts;
-  int32_t leftTimeForVelocity, rightTimeForVelocity;
+  uint32_t leftTimestamp, rightTimestamp;
   int16_t leftEncoder, rightEncoder;
+  bool resetEncoders;
   // uint16_t analog[6];
 
   bool playNotes;
@@ -89,8 +90,14 @@ void loop()
   
   slave.buffer.leftEncoder = encoders.getCountsLeft();
   slave.buffer.rightEncoder = encoders.getCountsRight();
-  slave.buffer.leftTimeForVelocity = encoders.getTimeSinceReadingLeft();
-  slave.buffer.rightTimeForVelocity = encoders.getTimeSinceReadingRight();
+  slave.buffer.leftTimestamp = encoders.getTimestampLeft();
+  slave.buffer.rightTimestamp = encoders.getTimestampRight();
+  
+  if (slave.buffer.resetEncoders) {
+    encoders.getCountsAndResetLeft();
+    encoders.getCountsAndResetRight();
+    slave.buffer.resetEncoders = 0;
+  }
 
   // Playing music involves both reading and writing, since we only
   // want to do it once.
