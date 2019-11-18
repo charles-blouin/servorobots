@@ -7,18 +7,31 @@ import numpy as np
 class BalboaState:
     def __init__(self, comms):
         self.gear_ratio = 1322
+
+        self.reset_encoders()
+        self.previous_rot_left = 0
+        self.previous_rot_right = 0
+        self.previous_timestamp_left = 0
+        self.previous_timestamp_right = 0
         
         self.comms = comms
         self.read_balboa_sensor()
 
     def read_balboa_sensor(self):
-        self.rot_left, self.rot_right = self.comms.read_encoders()
+        self.timestamp_left, self.timestamp_right, self.rot_left, self.rot_right = self.comms.read_encoders()
         self.rot_left = self.rot_left/self.gear_ratio * 6.29184 # in rad
         self.rot_right = self.rot_right/self.gear_ratio * 6.29184 # in rad
-        
-        time_left, time_right = self.comms.read_timeSinceLastEncoder()
-        self.vel_left = (1/self.gear_ratio*6.29184)/time_left * 1000000
-        self.vel_right = (1/self.gear_ratio*6.29184)/time_right * 1000000
+
+        self.vel_left = (self.rot_left - self.previous_rot_left) / \
+                        (self.timestamp_left - self.previous_timestamp_left) * 1000000
+        self.vel_right = (self.rot_right - self.previous_rot_right) / \
+                        (self.timestamp_right - self.previous_timestamp_right) * 1000000
+
+        self.previous_rot_left = self.rot_left
+        self.previous_rot_right = self.rot_right
+        self.previous_timestamp_left = self.timestamp_left
+        self.previous_timestamp_right = self.timestamp_right
+
         
     def state_vector(self):
         gyro_x = 0
