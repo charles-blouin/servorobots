@@ -33,13 +33,17 @@ struct Data
   uint16_t batteryMillivolts;
   uint32_t leftTimestamp, rightTimestamp;
   int16_t leftEncoder, rightEncoder;
+  /*
+  int16_t ax, ay, az;
+  int16_t gx, gy, gz;
+  
+  int8_t looptime;
+  */
   bool resetEncoders;
   // uint16_t analog[6];
+  // bool playNotes;
+  // char notes[14];
 
-  bool playNotes;
-  char notes[14];
-  
-  // Encoders are unused in this example.
 
 };
 
@@ -73,7 +77,7 @@ void loop()
 
   // Change this to readBatteryMillivoltsLV() for the LV model.
   slave.buffer.batteryMillivolts = readBatteryMillivolts();
-
+  
 /*
   for(uint8_t i=0; i<6; i++)
   {
@@ -99,6 +103,8 @@ void loop()
     slave.buffer.resetEncoders = 0;
   }
 
+
+  /*
   // Playing music involves both reading and writing, since we only
   // want to do it once.
   static bool startedPlaying = false;
@@ -113,7 +119,9 @@ void loop()
     slave.buffer.playNotes = false;
     startedPlaying = false;
   }
-
+  */
+  
+  
   // When you are done WRITING, call finalizeWrites() to make modified
   // data available to I2C master.
   slave.finalizeWrites();

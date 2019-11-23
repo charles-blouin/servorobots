@@ -12,9 +12,9 @@ register(
 
 import os
 # Check if on Raspberry Pi
-print("here")
+# from balboa.balboa_env import BalboaEnvMotor
 try:
     if (os.uname()[4].startswith("arm")):
         from balboa.balboa_env import BalboaEnvMotor
-except:
+except ImportError:
     print("Balboa environment not available, we are not on a RPi")

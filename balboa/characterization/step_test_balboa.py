@@ -40,7 +40,7 @@ for step in range(0,fps*episode_length):
     states_array.append(states.tolist())
     actions_array.append(actions)
     
-    print(states[0:4])
+    print(states[0:])
     delay = start_time + (step+1) * frame_length - time.time()
     time.sleep(delay)
     

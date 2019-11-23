@@ -2,10 +2,12 @@ import gym
 import time
 from balboa.characterization.a_star import AStar
 import numpy as np
-
+from balboa.BalboaRPiSlaveDemo.lsm6 import LSM6
 
 class BalboaState:
     def __init__(self, comms):
+        self.lsm = LSM6()
+        self.lsm.enable()
         self.gear_ratio = 1322
 
         self.comms = comms
@@ -19,11 +21,16 @@ class BalboaState:
         self.read_balboa_sensor()
 
     def read_balboa_sensor(self):
-        self.timestamp_left, self.timestamp_right, self.rot_left, self.rot_right = self.comms.read_encoders()
+        # Encoder calculation
+        self.timestamp_left, self.timestamp_right, \
+        self.rot_left, self.rot_right \
+        = self.comms.read_sensors()
+    
         self.rot_left = self.rot_left/self.gear_ratio * 6.29184 # in rad
         self.rot_right = self.rot_right/self.gear_ratio * 6.29184 # in rad
 
 
+        # Velocity calculation
         if (self.timestamp_left == self.previous_timestamp_left):
             self.vel_left = 0
         else:
@@ -36,29 +43,49 @@ class BalboaState:
             self.vel_right = (self.rot_right - self.previous_rot_right) / \
                              (self.timestamp_right - self.previous_timestamp_right) * 1000000
         
-        
         self.previous_rot_left = self.rot_left
         self.previous_rot_right = self.rot_right
         self.previous_timestamp_left = self.timestamp_left
         self.previous_timestamp_right = self.timestamp_right
-
+        
+        # Voltage Calculation
+        self.voltage = self.comms.read_battery_millivolts()
+        
+        ## Gyro and accelerometer
+        self.lsm.read()
+    
+    def calibrate_gyro(self):
+        for i in range(1000):
+            self.lsm.read()
+            gyro_x_cal += self.lsm.g.x
+            gyro_y_cal += self.lsm.g.y
+            gyro_z_cal += self.lsm.g.z
+            
+        print("Gyro cal:" )
+        print(gyro_x_cal/1000)
+        print(gyro_y_cal/1000)
+        print(gyro_z_cal/1000)
+        
         
     def state_vector(self):
-        gyro_x = 0
-        gyro_y = 0
-        gyro_z = 0
-        acc_x = 0
-        acc_y = 0
-        acc_z = 0
-        voltage = 0
+        gyro_x = self.lsm.gx
+        gyro_y = self.lsm.gy
+        gyro_z = self.lsm.gz
+        acc_x = self.lsm.ax
+        acc_y = self.lsm.ay
+        acc_z = self.lsm.az
         
         return np.array([self.rot_left, self.rot_right, self.vel_left, self.vel_right,
                         gyro_x, gyro_y, gyro_z, acc_x, acc_y, acc_z,
-                        voltage])
+                        self.voltage[0]])
 
 # Forward is battery cover when the balboa is up.
 # Left motor is 0. Positive direction makes the balboa go forward.
 # Right motor is 1
+
+#gx is 9.8 when robot is balancing
+# gy is 9.8 when robot is on its right when
+# gz is 9.8 when battery cover is down.
 
 class BalboaEnvMotor(gym.Env):
     def __init__(self, renders=False):
