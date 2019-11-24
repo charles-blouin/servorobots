@@ -24,7 +24,7 @@ env.reset()
 for step in range(0,fps*episode_length):
     
     timestamps.append(time.time() - start_time)
-    
+    total_loop_time = time.time()
     
     
     
@@ -34,13 +34,16 @@ for step in range(0,fps*episode_length):
         actions = [0, 0.3]
     elif step < 3*fps:
         actions = [0, 0]
-        
+    
+    baloa_env_time = time.time()
     states, reward, _, _ = env.step(actions)
+    # print(time.time() - baloa_env_time)
     
     states_array.append(states.tolist())
     actions_array.append(actions)
     
-    print(states[0:])
+    # print(states[0:])
+    # print(total_loop_time-time.time())
     delay = start_time + (step+1) * frame_length - time.time()
     time.sleep(delay)
     

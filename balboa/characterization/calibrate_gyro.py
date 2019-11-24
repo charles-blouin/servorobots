@@ -1,4 +1,4 @@
-from balboa.characterization.a_star import AStar
+from balboa.a_star import AStar
 from balboa.balboa_env import BalboaState
 import time
 
