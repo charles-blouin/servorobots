@@ -5,7 +5,7 @@ register(
     entry_point='balboa:BalboaEnvMotor',
     max_episode_steps=1000,
     reward_threshold=950.0,
-    kwargs={'renders': True},
+    kwargs={'renders': True, 'offset_gx': 0.0069169671877200006, 'offset_gy': -0.05740454241144015, 'offset_gz': -0.06578842224624006},
     tags={ "pg_complexity": 1*1000000 },
     )
 

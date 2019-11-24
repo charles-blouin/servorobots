@@ -5,12 +5,15 @@ import numpy as np
 from balboa.BalboaRPiSlaveDemo.lsm6 import LSM6
 
 class BalboaState:
-    def __init__(self, comms):
+    def __init__(self, comms, offset_gx, offset_gy, offset_gz):
         self.lsm = LSM6()
         self.lsm.enable()
         self.gear_ratio = 1322
 
         self.comms = comms
+        self.offset_gx = offset_gx
+        self.offset_gy = offset_gy
+        self.offset_gz = offset_gz
         
         self.comms.reset_encoders()
         self.previous_rot_left = 0
@@ -68,9 +71,9 @@ class BalboaState:
         
         
     def state_vector(self):
-        gyro_x = self.lsm.gx
-        gyro_y = self.lsm.gy
-        gyro_z = self.lsm.gz
+        gyro_x = self.lsm.gx - self.offset_gx
+        gyro_y = self.lsm.gy - self.offset_gy
+        gyro_z = self.lsm.gz - self.offset_gz
         acc_x = self.lsm.ax
         acc_y = self.lsm.ay
         acc_z = self.lsm.az
@@ -88,7 +91,7 @@ class BalboaState:
 # gz is 9.8 when battery cover is down.
 
 class BalboaEnvMotor(gym.Env):
-    def __init__(self, renders=False):
+    def __init__(self, renders=False, offset_gx=0, offset_gy=0, offset_gz=0):
         self._seed()
         
         # Balancer observation: All in SI
@@ -108,7 +111,7 @@ class BalboaEnvMotor(gym.Env):
         
         # Comm object to access Balboa
         self.comms = AStar()
-        self.balboa_state = BalboaState(self.comms)
+        self.balboa_state = BalboaState(self.comms, offset_gx, offset_gy, offset_gz)
         self.max_PWM_value = 400
         
         
