@@ -18,7 +18,6 @@ import gym
 from gym import spaces
 from gym.utils import seeding
 import numpy as np
-
 # See user manual https://usermanual.wiki/Document/pybullet20quickstart20guide.479068914.pdf
 import pybullet as p
 import pybullet_data
