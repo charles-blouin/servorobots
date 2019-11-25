@@ -2,6 +2,8 @@ import gym
 import time
 import json
 
+# python3 -m balboa.characterization.step_test_balboa
+
 env = gym.make('Balboa-v0')
 env.reset()
 
@@ -17,6 +19,8 @@ episode_length = 3 # in seconds
 
 start_time = time.time()
 
+env.reset()
+
 for step in range(0,fps*episode_length):
     
     timestamps.append(time.time() - start_time)
@@ -27,7 +31,7 @@ for step in range(0,fps*episode_length):
     if step < 1*fps:
         actions = [0, 0]
     elif step < 2*fps:
-        actions = [1, -1]
+        actions = [0, 0.3]
     elif step < 3*fps:
         actions = [0, 0]
         
@@ -36,7 +40,7 @@ for step in range(0,fps*episode_length):
     states_array.append(states.tolist())
     actions_array.append(actions)
     
-    
+    print(states[0:])
     delay = start_time + (step+1) * frame_length - time.time()
     time.sleep(delay)
     

@@ -2,56 +2,96 @@ import gym
 import time
 from balboa.characterization.a_star import AStar
 import numpy as np
-
+from balboa.BalboaRPiSlaveDemo.lsm6 import LSM6
 
 class BalboaState:
-    def __init__(self, comms):
+    def __init__(self, comms, offset_gx, offset_gy, offset_gz):
+        self.lsm = LSM6()
+        self.lsm.enable()
         self.gear_ratio = 1322
 
-        self.reset_encoders()
+        self.comms = comms
+        self.offset_gx = offset_gx
+        self.offset_gy = offset_gy
+        self.offset_gz = offset_gz
+        
+        self.comms.reset_encoders()
         self.previous_rot_left = 0
         self.previous_rot_right = 0
         self.previous_timestamp_left = 0
         self.previous_timestamp_right = 0
         
-        self.comms = comms
         self.read_balboa_sensor()
 
     def read_balboa_sensor(self):
-        self.timestamp_left, self.timestamp_right, self.rot_left, self.rot_right = self.comms.read_encoders()
+        # Encoder calculation
+        self.timestamp_left, self.timestamp_right, \
+        self.rot_left, self.rot_right \
+        = self.comms.read_sensors()
+    
         self.rot_left = self.rot_left/self.gear_ratio * 6.29184 # in rad
         self.rot_right = self.rot_right/self.gear_ratio * 6.29184 # in rad
 
-        self.vel_left = (self.rot_left - self.previous_rot_left) / \
-                        (self.timestamp_left - self.previous_timestamp_left) * 1000000
-        self.vel_right = (self.rot_right - self.previous_rot_right) / \
-                        (self.timestamp_right - self.previous_timestamp_right) * 1000000
 
+        # Velocity calculation
+        if (self.timestamp_left == self.previous_timestamp_left):
+            self.vel_left = 0
+        else:
+            self.vel_left = (self.rot_left - self.previous_rot_left) / \
+                            (self.timestamp_left - self.previous_timestamp_left) * 1000000
+            
+        if (self.timestamp_right == self.previous_timestamp_right):
+            self.vel_right = 0
+        else:
+            self.vel_right = (self.rot_right - self.previous_rot_right) / \
+                             (self.timestamp_right - self.previous_timestamp_right) * 1000000
+        
         self.previous_rot_left = self.rot_left
         self.previous_rot_right = self.rot_right
         self.previous_timestamp_left = self.timestamp_left
         self.previous_timestamp_right = self.timestamp_right
-
+        
+        # Voltage Calculation
+        self.voltage = self.comms.read_battery_millivolts()
+        
+        ## Gyro and accelerometer
+        self.lsm.read()
+    
+    def calibrate_gyro(self):
+        for i in range(1000):
+            self.lsm.read()
+            gyro_x_cal += self.lsm.g.x
+            gyro_y_cal += self.lsm.g.y
+            gyro_z_cal += self.lsm.g.z
+            
+        print("Gyro cal:" )
+        print(gyro_x_cal/1000)
+        print(gyro_y_cal/1000)
+        print(gyro_z_cal/1000)
+        
         
     def state_vector(self):
-        gyro_x = 0
-        gyro_y = 0
-        gyro_z = 0
-        acc_x = 0
-        acc_y = 0
-        acc_z = 0
-        voltage = 0
+        gyro_x = self.lsm.gx - self.offset_gx
+        gyro_y = self.lsm.gy - self.offset_gy
+        gyro_z = self.lsm.gz - self.offset_gz
+        acc_x = self.lsm.ax
+        acc_y = self.lsm.ay
+        acc_z = self.lsm.az
         
         return np.array([self.rot_left, self.rot_right, self.vel_left, self.vel_right,
                         gyro_x, gyro_y, gyro_z, acc_x, acc_y, acc_z,
-                        voltage])
+                        self.voltage[0]])
 
 # Forward is battery cover when the balboa is up.
 # Left motor is 0. Positive direction makes the balboa go forward.
 # Right motor is 1
 
+#gx is 9.8 when robot is balancing
+# gy is 9.8 when robot is on its right when
+# gz is 9.8 when battery cover is down.
+
 class BalboaEnvMotor(gym.Env):
-    def __init__(self, renders=False):
+    def __init__(self, renders=False, offset_gx=0, offset_gy=0, offset_gz=0):
         self._seed()
         
         # Balancer observation: All in SI
@@ -71,7 +111,7 @@ class BalboaEnvMotor(gym.Env):
         
         # Comm object to access Balboa
         self.comms = AStar()
-        self.balboa_state = BalboaState(self.comms)
+        self.balboa_state = BalboaState(self.comms, offset_gx, offset_gy, offset_gz)
         self.max_PWM_value = 400
         
         
@@ -80,7 +120,9 @@ class BalboaEnvMotor(gym.Env):
     def step(self, action):
         np.clip(action, -1, 1)
         # Step the environment
-        self.comms.motors(action[0]*self.max_PWM_value, action[1]*self.max_PWM_value)
+        left = round(action[0]*self.max_PWM_value)
+        right = round(action[1]*self.max_PWM_value)
+        self.comms.motors(left, right)
         
         self.balboa_state.read_balboa_sensor()
         
@@ -89,6 +131,7 @@ class BalboaEnvMotor(gym.Env):
         return self.balboa_state.state_vector(), reward, done, {}
         
     def reset(self):
+        self.comms.reset_encoders()
         self.balboa_state.read_balboa_sensor()
         return self.balboa_state.state_vector()
         
