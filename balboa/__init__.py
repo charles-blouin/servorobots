@@ -26,5 +26,5 @@ import os
 try:
     if (os.uname()[4].startswith("arm")):
         from balboa.balboa_env import BalboaEnvMotor
-except ImportError:
+except AttributeError:
     print("Balboa environment not available, we are not on a RPi")

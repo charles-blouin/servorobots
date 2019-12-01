@@ -2,6 +2,8 @@ import gym
 import time
 import json
 
+# python -m balboa.balboa_env_motor_test
+
 env = gym.make('Balboa-motors-render-v1')
 env.reset()
 
@@ -22,11 +24,11 @@ for step in range(0, fps * episode_length):
 
 
     if step < 1 * fps:
-        actions = [1, 0]
+        actions = [0, 0]
     elif step < 2 * fps:
-        actions = [1, 0]
+        actions = [0, 0]
     elif step < 3 * fps:
-        actions = [1, 0]
+        actions = [0.1, 0.1]
 
 
     states, reward, _, info = env.step(actions)

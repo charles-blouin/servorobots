@@ -86,7 +86,7 @@ class BalboaState:
 # Left motor is 0. Positive direction makes the balboa go forward.
 # Right motor is 1
 
-#gx is 9.8 when robot is balancing
+# gx is 9.8 when robot is balancing
 # gy is 9.8 when robot is on its right when
 # gz is 9.8 when battery cover is down.
 

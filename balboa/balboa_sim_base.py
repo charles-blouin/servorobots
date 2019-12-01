@@ -29,10 +29,11 @@ class BalboaSim:
         self.max_voltage = 7.4
 
         # Balancer observation: All in SI
-        # Motor Rot Right, Rot Left (2)
-        # Motor Speed right, left (2)
+        # Motor Rot Left, Rot Right (2)
+        # Motor Speed Left, Right (2)
         # Angular velocity (3), Local frame
         # Acceleration (3), Local frame for later
+        # Voltage (1)
         self.observation_size = 10
         high_obs = np.ones(self.observation_size)
         self.observation_space = spaces.Box(high_obs * -1, high_obs * 1)
@@ -69,15 +70,16 @@ class BalboaSim:
 
 
             # Apply torque to motors
+            print('step')
             torque_left, current_left = self.motor_left.torque_from_voltage(
                 TimestampInput(action[0] * self.max_voltage, self.time), vel_left)
             torque_right, current_right = self.motor_right.torque_from_voltage(
                 TimestampInput(action[1] * self.max_voltage, self.time), vel_right)
-            print(action[0])
             print(torque_left)
             print(rot_left)
             motor_forces = [torque_left, torque_right]
 
+            p.setJointMotorControlArray(self.robot, [0, 1], p.VELOCITY_CONTROL, targetVelocities=[0, 0], forces=[0, 0])
             p.setJointMotorControlArray(self.robot, [0, 1], p.TORQUE_CONTROL, forces=motor_forces)
 
             state = np.concatenate(([rot_left, rot_right, vel_left, vel_right], local_rot_vel, acc, [self.max_voltage]))
@@ -94,11 +96,10 @@ class BalboaSim:
         return self.state, contact, self.time
 
 
-    def reset(self, x=0, y=0, z=0.05, q1=1, q2=0, q3=0, q4=0, gravity = -9.81,
-                    ML_R=9, ML_Kv=9, ML_Kvis=0.0005,
-                    MR_R=26.3, MR_Kv=9, MR_Kvis=0.0005,
+    def reset(self, x=0, y=0, z=0.05, q1=0, q2=0, q3=0, q4=1, gravity = -9.81,
+                    ML_R=3, ML_Kv=9, ML_Kvis=0.0005,
+                    MR_R=3, MR_Kv=9, MR_Kvis=0.0005,
                     latency=0.02):
-
         p.resetSimulation()
         p.setGravity(0, 0, gravity)
 
@@ -112,7 +113,7 @@ class BalboaSim:
         # Change friction of the right wheel
         p.changeDynamics(self.robot, 1, lateralFriction=2, restitution=0.0)
 
-        self.motor_left = GearedDcMotor(R=ML_R, Kv=ML_Kv, K_viscous=ML_Kvis, K_load=6,
+        self.motor_left = GearedDcMotor(R=ML_R, Kv=ML_Kv, K_viscous=ML_Kvis, K_load=0,
                                         timestep=self.sim_timestep, latency=latency)
-        self.motor_right = GearedDcMotor(R=MR_R, Kv=MR_Kv, K_viscous=MR_Kvis, K_load=6,
+        self.motor_right = GearedDcMotor(R=MR_R, Kv=MR_Kv, K_viscous=MR_Kvis, K_load=0,
                                          timestep=self.sim_timestep, latency=latency)
