@@ -17,7 +17,7 @@ looptime = []
 
 fps = 100
 frame_length = 1 / fps
-episode_length = 7  # in seconds
+episode_length = 4  # in seconds
 
 
 
@@ -30,17 +30,17 @@ for step in range(0, fps * episode_length):
 
     if step < 1 * fps:
         actions = [0, 0]
-    elif step < 2 * fps:
+    elif step < 1.5 * fps:
         actions = [0.5, 0.5]
-    elif step < 3 * fps:
+    elif step < 2 * fps:
         actions = [1, 1]
-    elif step < 4 * fps:
+    elif step < 2.5 * fps:
         actions = [0, 0]
-    elif step < 5 * fps:
+    elif step < 3 * fps:
         actions = [-0.5, -0.5]
-    elif step < 6 * fps:
+    elif step < 3.5 * fps:
         actions = [-1, -1]
-    elif step < 7 * fps:
+    elif step < 4 * fps:
         actions = [0, 0]
 
 
