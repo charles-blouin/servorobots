@@ -2,7 +2,7 @@ import gym
 import time
 import json
 
-# python -m balboa.balboa_env_motor_test
+# python -m balboa.sim_env_motor_test
 
 env = gym.make('Balboa-motors-render-v1')
 env.reset()
