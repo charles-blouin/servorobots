@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 from balboa.a_star import AStar
 from balboa.balboa_env import BalboaState
+=======
+from balboa.characterization.a_star import AStar
+from balboa.real_env import BalboaState
+>>>>>>> 5fa2b2190c87f962c89d7c0e6f9b32f188c19d12
 import time
 
 #python3 -m balboa.characterization.calibrate_gyro
