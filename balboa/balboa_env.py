@@ -61,7 +61,7 @@ class BalboaState:
         self.previous_timestamp_right = self.timestamp_right
         
         # Voltage Calculation
-        self.voltage = self.comms.read_battery_millivolts()
+        self.voltage = self.comms.read_battery_millivolts()[0]/1000
         
         ## Gyro and accelerometer
         self.lsm.read()
@@ -89,7 +89,7 @@ class BalboaState:
         
         return np.array([self.rot_left, self.rot_right, self.vel_left, self.vel_right,
                         gyro_x, gyro_y, gyro_z, acc_x, acc_y, acc_z,
-                        self.voltage[0]])
+                        self.voltage])
 
 # Forward is battery cover when the balboa is up.
 # Left motor is 0. Positive direction makes the balboa go forward.

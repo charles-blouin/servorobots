@@ -31,7 +31,7 @@ for step in range(0,fps*episode_length):
     if step < 1*fps:
         actions = [0, 0]
     elif step < 2*fps:
-        actions = [0, 0.3]
+        actions = [0.2, 0]
     elif step < 3*fps:
         actions = [0, 0]
     
@@ -42,7 +42,7 @@ for step in range(0,fps*episode_length):
     states_array.append(states.tolist())
     actions_array.append(actions)
     
-    # print(states[0:])
+    print(states[0:])
     # print(total_loop_time-time.time())
     delay = start_time + (step+1) * frame_length - time.time()
     time.sleep(delay)
