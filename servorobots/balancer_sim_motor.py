@@ -18,15 +18,14 @@ import gym
 from gym import spaces
 from gym.utils import seeding
 import numpy as np
-
 # See user manual https://usermanual.wiki/Document/pybullet20quickstart20guide.479068914.pdf
 import pybullet as p
 import pybullet_data
 import time
 
 from servorobots.tools.quaternion import qt
-from servorobots.components.test_motor import GearedDcMotor
-from servorobots.components.test_motor import TimestampInput
+from servorobots.components.dc_motor import GearedDcMotor
+from servorobots.components.dc_motor import TimestampInput
 
 logger = logging.getLogger(__name__)
 gym.Env()

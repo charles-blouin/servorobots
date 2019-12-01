@@ -9,6 +9,16 @@ register(
     tags={ "pg_complexity": 1*1000000 },
     )
 
+register(
+    id='Balboa-motors-render-v1',
+    entry_point='balboa:BalboaEnvSimMotor',
+    max_episode_steps=1000,
+    reward_threshold=950.0,
+    kwargs={'renders': True},
+    tags={ "pg_complexity": 1*1000000 },
+    )
+
+from balboa.balboa_env_motor import BalboaEnvSimMotor
 
 import os
 # Check if on Raspberry Pi
@@ -16,5 +26,5 @@ import os
 try:
     if (os.uname()[4].startswith("arm")):
         from balboa.balboa_env import BalboaEnvMotor
-except ImportError:
+except AttributeError:
     print("Balboa environment not available, we are not on a RPi")

@@ -24,8 +24,8 @@ import pybullet_data
 from pkg_resources import parse_version
 
 
-from servorobots.components.test_motor import GearedDcMotor
-from servorobots.components.test_motor import TimestampInput
+from servorobots.components.dc_motor import GearedDcMotor
+from servorobots.components.dc_motor import TimestampInput
 
 logger = logging.getLogger(__name__)
 gym.Env()
@@ -205,11 +205,11 @@ class BalancerEnv(gym.Env):
         self.quad = p.loadURDF(os.path.join(currentdir, "balancer.urdf"), [0, 0, 0.05], [0, 0, 0, 1],
                                flags=p.URDF_USE_INERTIA_FROM_FILE)
 
-        p.changeDynamics(self.quad, -1, lateralFriction=0.3, restitution=0.5)
+        p.changeDynamics(self.quad, -1, lateralFriction=0.0, restitution=0.0)
 
-        p.changeDynamics(self.quad, 0, lateralFriction=2, restitution=0.0)
+        p.changeDynamics(self.quad, 0, lateralFriction=1, restitution=0.0)
 
-        p.changeDynamics(self.quad, 1, lateralFriction=2, restitution=0.0)
+        p.changeDynamics(self.quad, 1, lateralFriction=1, restitution=0.0)
 
         filename = os.path.join(pybullet_data.getDataPath(), "plane_stadium.sdf")
         self.ground_plane_mjcf = p.loadSDF(filename)
