@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import json
-import servorobots.components.test_motor as motor
+import servorobots.components.dc_motor as motor
 
 # This file opens a step_test output file and finds the motor constants that fit the motors best.
 import scipy.optimize as opt

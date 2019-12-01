@@ -13,7 +13,7 @@ actions_array = []
 states_array = []
 timestamps = []
 
-fps = 50
+fps = 100
 frame_length = 1 / fps
 episode_length = 3  # in seconds
 
@@ -28,7 +28,7 @@ for step in range(0, fps * episode_length):
     elif step < 2 * fps:
         actions = [0, 0]
     elif step < 3 * fps:
-        actions = [0.1, 0.1]
+        actions = [1, 1]
 
 
     states, reward, _, info = env.step(actions)

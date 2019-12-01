@@ -4,8 +4,8 @@ import time
 import os, inspect
 import pybullet as p
 from gym import spaces
-from servorobots.components.test_motor import GearedDcMotor
-from servorobots.components.test_motor import TimestampInput
+from servorobots.components.dc_motor import GearedDcMotor
+from servorobots.components.dc_motor import TimestampInput
 
 from servorobots.tools.quaternion import qt
 
@@ -15,7 +15,7 @@ currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfram
 # robot parameters without touching the robot code.
 
 class BalboaSim:
-    def __init__(self, renders=False, sim_timestep=0.01, action_every_x_timestep=1):
+    def __init__(self, renders=False, sim_timestep=0.0020, action_every_x_timestep=5):
         self._renders = renders
         if (renders):
             p.connect(p.GUI)
@@ -55,50 +55,51 @@ class BalboaSim:
         return local_rot_vel, acc
 
     def step(self, action):
-        for i in range(0, self.action_every_x_timestep+1):
+
+        if self._renders:
+            time.sleep(self.sim_timestep)
+
+        # Obtain local pose
+        local_rot_vel, acc = self.local_pose()
+
+        # Obtain encoders pose
+        rot_right, vel_right, _, _ = p.getJointState(self.robot, 0)
+        rot_left, vel_left, _, _ = p.getJointState(self.robot, 1)
+
+
+        # Apply torque to motors
+        print('step')
+        torque_left, current_left = self.motor_left.torque_from_voltage(
+            TimestampInput(action[0] * self.max_voltage, self.time), vel_left)
+        torque_right, current_right = self.motor_right.torque_from_voltage(
+            TimestampInput(action[1] * self.max_voltage, self.time), vel_right)
+        print(self.time)
+        motor_forces = [torque_left, torque_right]
+
+        p.setJointMotorControlArray(self.robot, [0, 1], p.VELOCITY_CONTROL, targetVelocities=[0, 0], forces=[0, 0])
+        p.setJointMotorControlArray(self.robot, [0, 1], p.TORQUE_CONTROL, forces=motor_forces)
+
+        state = np.concatenate(([rot_left, rot_right, vel_left, vel_right], local_rot_vel, acc, [self.max_voltage]))
+        self.state = state
+
+        #### Check for contact ####
+        contacts = p.getContactPoints(bodyA=self.robot, linkIndexA=-1)
+        if contacts != ():
+            contact = 1
+        else:
+            contact = 0
+
+
+        for i in range(0, self.action_every_x_timestep):
             p.stepSimulation()
-
-            if self._renders:
-                time.sleep(self.sim_timestep)
-
-            # Obtain local pose
-            local_rot_vel, acc = self.local_pose()
-
-            # Obtain encoders pose
-            rot_right, vel_right, _, _ = p.getJointState(self.robot, 0)
-            rot_left, vel_left, _, _ = p.getJointState(self.robot, 1)
-
-
-            # Apply torque to motors
-            print('step')
-            torque_left, current_left = self.motor_left.torque_from_voltage(
-                TimestampInput(action[0] * self.max_voltage, self.time), vel_left)
-            torque_right, current_right = self.motor_right.torque_from_voltage(
-                TimestampInput(action[1] * self.max_voltage, self.time), vel_right)
-            print(torque_left)
-            print(rot_left)
-            motor_forces = [torque_left, torque_right]
-
-            p.setJointMotorControlArray(self.robot, [0, 1], p.VELOCITY_CONTROL, targetVelocities=[0, 0], forces=[0, 0])
-            p.setJointMotorControlArray(self.robot, [0, 1], p.TORQUE_CONTROL, forces=motor_forces)
-
-            state = np.concatenate(([rot_left, rot_right, vel_left, vel_right], local_rot_vel, acc, [self.max_voltage]))
-            self.state = state
-
-            #### Check for contact ####
-            contacts = p.getContactPoints(bodyA=self.robot, linkIndexA=-1)
-            if contacts != ():
-                contact = 1
-            else:
-                contact = 0
             self.time += self.sim_timestep
 
         return self.state, contact, self.time
 
 
     def reset(self, x=0, y=0, z=0.05, q1=0, q2=0, q3=0, q4=1, gravity = -9.81,
-                    ML_R=3, ML_Kv=9, ML_Kvis=0.0005,
-                    MR_R=3, MR_Kv=9, MR_Kvis=0.0005,
+                    ML_R=5, ML_Kv=3.2, ML_Kvis=0.0005,
+                    MR_R=5, MR_Kv=3.2, MR_Kvis=0.0005,
                     latency=0.02):
         p.resetSimulation()
         p.setGravity(0, 0, gravity)

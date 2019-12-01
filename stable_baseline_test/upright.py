@@ -4,8 +4,8 @@ from gym.utils import seeding
 import numpy as np
 from os import path
 
-from servorobots.components.test_motor import GearedDcMotor
-from servorobots.components.test_motor import TimestampInput
+from servorobots.components.dc_motor import GearedDcMotor
+from servorobots.components.dc_motor import TimestampInput
 
 import servorobots.tools.utils as utils
 
