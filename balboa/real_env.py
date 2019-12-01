@@ -137,9 +137,11 @@ class BalboaEnvMotor(gym.Env):
         
         reward = 0
         done = 0
-        return self.balboa_state.state_vector(), reward, done, {}
+        current_time = time.time() - self.start_time
+        return self.balboa_state.state_vector(), reward, done, {"time": current_time}
         
     def reset(self):
+        self.start_time = time.time()
         self.comms.reset_encoders()
         self.balboa_state.read_balboa_sensor()
         return self.balboa_state.state_vector()

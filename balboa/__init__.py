@@ -18,13 +18,17 @@ register(
     tags={ "pg_complexity": 1*1000000 },
     )
 
-from balboa.sim_env_motor import BalboaEnvSimMotor
+
 
 import os
 # Check if on Raspberry Pi
 # from balboa.balboa_env import BalboaEnvMotor
 try:
     if (os.uname()[4].startswith("arm")):
+        # We are on the Pi
         from balboa.real_env import BalboaEnvMotor
+    else:
+        # We are not on the  Pi.
+        from balboa.sim_env_motor import BalboaEnvSimMotor
 except AttributeError:
     print("Balboa environment not available, we are not on a RPi")
