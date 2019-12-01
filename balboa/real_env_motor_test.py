@@ -37,9 +37,9 @@ for step in range(0, fps * episode_length):
     elif step < 2.5 * fps:
         actions = [0, 0]
     elif step < 3 * fps:
-        actions = [-0.5, -0.5]
+        actions = [-0.2, -0.2]
     elif step < 3.5 * fps:
-        actions = [-1, -1]
+        actions = [-0.4, -0.4]
     elif step < 4 * fps:
         actions = [0, 0]
 
