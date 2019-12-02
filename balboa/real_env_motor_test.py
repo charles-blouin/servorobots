@@ -19,8 +19,6 @@ fps = 100
 frame_length = 1 / fps
 episode_length = 4  # in seconds
 
-
-
 states = env.reset()
 start_time = time.time()
 

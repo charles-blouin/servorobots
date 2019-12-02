@@ -3,41 +3,55 @@ import time
 import json
 
 # python -m balboa.sim_env_motor_test
+def sim_motor_test():
+    env = gym.make('Balboa-motors-render-v1')
+    env.reset()
 
-env = gym.make('Balboa-motors-render-v1')
-env.reset()
+    actions_array = []
+    states_array = []
+    timestamps = []
+    looptime = []
 
-file_name = 'balboa_env_motor_test_01.txt'
+    fps = 100
+    frame_length = 1 / fps
+    episode_length = 4  # in seconds
 
-actions_array = []
-states_array = []
-timestamps = []
+    states = env.reset()
+    start_time = time.time()
 
-fps = 100
-frame_length = 1 / fps
-episode_length = 3  # in seconds
+    for step in range(0, fps * episode_length):
+        time_of_this_step = time.time()
+        # action = NN(states)
 
-start_time = time.time()
+        if step < 1 * fps:
+            actions = [0, 0]
+        elif step < 1.5 * fps:
+            actions = [0.5, 0.5]
+        elif step < 2 * fps:
+            actions = [1, 1]
+        elif step < 2.5 * fps:
+            actions = [0, 0]
+        elif step < 3 * fps:
+            actions = [-0.2, -0.2]
+        elif step < 3.5 * fps:
+            actions = [-0.4, -0.4]
+        elif step < 4 * fps:
+            actions = [0, 0]
 
-for step in range(0, fps * episode_length):
+        states, reward, _, info = env.step(actions)
+        timestamps.append(time_of_this_step - start_time)
+        states_array.append(states.tolist())
+        actions_array.append(actions)
+        looptime.append(time.time() - time_of_this_step)
+
+    return timestamps, actions_array, states_array, looptime;
 
 
+if __name__ == "__main__":
+    file_name = 'balboa_env_motor_test_01.txt'
 
-    if step < 1 * fps:
-        actions = [0, 0]
-    elif step < 2 * fps:
-        actions = [0, 0]
-    elif step < 3 * fps:
-        actions = [1, 1]
-
-
-    states, reward, _, info = env.step(actions)
-    timestamps.append(info["time"])
-    states_array.append(states.tolist())
-    actions_array.append(actions)
-
-
-with open(file_name, 'w') as filehandle:
-    json.dump({"timestamps": timestamps, "actions": actions_array,
-               "states": states_array
-               }, filehandle)
+    timestamps, actions_array, states_array, looptime = sim_motor_test()
+    with open(file_name, 'w') as filehandle:
+        json.dump({"timestamps": timestamps, "actions": actions_array,
+                   "states": states_array
+                   }, filehandle)

@@ -98,8 +98,8 @@ class BalboaSim:
 
 
     def reset(self, x=0, y=0, z=0.05, q1=0, q2=0, q3=0, q4=1, gravity = -9.81,
-                    ML_R=5, ML_Kv=3.2, ML_Kvis=0.0005,
-                    MR_R=5, MR_Kv=3.2, MR_Kvis=0.0005,
+                    ML_R=15, ML_Kv=3.2, ML_Kvis=0.0005,
+                    MR_R=15, MR_Kv=3.2, MR_Kvis=0.0005,
                     latency=0.02):
         p.resetSimulation()
         p.setGravity(0, 0, gravity)

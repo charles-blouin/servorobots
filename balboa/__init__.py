@@ -27,8 +27,7 @@ try:
     if (os.uname()[4].startswith("arm")):
         # We are on the Pi
         from balboa.real_env import BalboaEnvMotor
-    else:
-        # We are not on the  Pi.
-        from balboa.sim_env_motor import BalboaEnvSimMotor
+
 except AttributeError:
     print("Balboa environment not available, we are not on a RPi")
+    from balboa.sim_env_motor import BalboaEnvSimMotor
