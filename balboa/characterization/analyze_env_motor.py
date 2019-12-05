@@ -54,4 +54,13 @@ for line in range(states.shape[1]):
 # https://stackoverflow.com/questions/12439588/how-to-maximize-a-plt-show-window-using-python
 figManager = plt.get_current_fig_manager()
 figManager.window.state('zoomed')
+vel_measured = states[175, 2]
+vel_calc = (states[200, 0] - states[160, 0]) / (timestamps[200]-timestamps[160])
+print(vel_measured)
+print(vel_calc)
+
+vel_measured = states_sim[175, 2]
+vel_calc = (states_sim[200, 0] - states_sim[160, 0]) / (timestamp_sim[200]-timestamp_sim[160])
+print(vel_measured)
+print(vel_calc)
 plt.show()

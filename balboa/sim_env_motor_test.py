@@ -17,10 +17,12 @@ def sim_motor_test():
     episode_length = 4  # in seconds
 
     states = env.reset()
-    start_time = time.time()
+    start_time = 0
+    time_of_this_step = 0
 
     for step in range(0, fps * episode_length):
-        time_of_this_step = time.time()
+
+        loop_time = time.time()
         # action = NN(states)
 
         if step < 1 * fps:
@@ -42,7 +44,9 @@ def sim_motor_test():
         timestamps.append(time_of_this_step - start_time)
         states_array.append(states.tolist())
         actions_array.append(actions)
-        looptime.append(time.time() - time_of_this_step)
+        looptime.append(time.time() - loop_time)
+
+        time_of_this_step += frame_length
 
     return timestamps, actions_array, states_array, looptime;
 

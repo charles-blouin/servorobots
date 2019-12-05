@@ -63,22 +63,23 @@ class BalboaSim:
         local_rot_vel, acc = self.local_pose()
 
         # Obtain encoders pose
-        rot_right, vel_right, _, _ = p.getJointState(self.robot, 0)
-        rot_left, vel_left, _, _ = p.getJointState(self.robot, 1)
+        rot_left, vel_left, _, _ = p.getJointState(self.robot, 0)
+        rot_right, vel_right, _, _ = p.getJointState(self.robot, 1)
+
 
 
         # Apply torque to motors
-        print('step')
         torque_left, current_left = self.motor_left.torque_from_voltage(
             TimestampInput(action[0] * self.max_voltage, self.time), vel_left)
         torque_right, current_right = self.motor_right.torque_from_voltage(
             TimestampInput(action[1] * self.max_voltage, self.time), vel_right)
-        print(self.time)
         motor_forces = [torque_left, torque_right]
 
         p.setJointMotorControlArray(self.robot, [0, 1], p.VELOCITY_CONTROL, targetVelocities=[0, 0], forces=[0, 0])
         p.setJointMotorControlArray(self.robot, [0, 1], p.TORQUE_CONTROL, forces=motor_forces)
 
+        vel_left = (rot_left - self.previous_rot_left)/0.01
+        self.previous_rot_left = rot_left
         state = np.concatenate(([rot_left, rot_right, vel_left, vel_right], local_rot_vel, acc, [self.max_voltage]))
         self.state = state
 
@@ -103,6 +104,8 @@ class BalboaSim:
                     latency=0.02):
         p.resetSimulation()
         p.setGravity(0, 0, gravity)
+
+        self.previous_rot_left = 0
 
         self.robot = p.loadURDF(os.path.join(currentdir, "balancer.urdf"), [x, y, z], [q1, q2, q3, q4],
                                flags=p.URDF_USE_INERTIA_FROM_FILE)
