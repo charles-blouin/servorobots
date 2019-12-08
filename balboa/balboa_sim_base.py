@@ -27,7 +27,7 @@ class BalboaSim:
         self.time = 0
         self.last_vel = [0, 0, 0]
         self.max_voltage = 7.2
-        self.r_battery = 0.5
+        self.r_battery = 0.4
 
         # Balancer observation: All in SI
         # Motor Rot Left, Rot Right (2)
@@ -91,8 +91,8 @@ class BalboaSim:
 
             ## The voltage goes downs as a function of current due to battery resistance.
             supplied_voltage = self.max_voltage - self.r_battery * self.max_voltage * \
-                               (abs(self.previous_current_left) * abs(action[0]) +
-                                abs(self.previous_current_right) * abs(action[1]))
+                               abs(self.previous_current_left) + \
+                                abs(self.previous_current_right)
             # Apply torque to motors
             torque_left, current_left = self.motor_left.torque_from_voltage(
                 TimestampInput(action[0] * supplied_voltage, self.time), vel_left)
@@ -127,8 +127,8 @@ class BalboaSim:
 
 
     def reset(self, x=0, y=0, z=0.05, q1=0, q2=0, q3=0, q4=1, gravity = -9.81,
-                    ML_R=20, ML_Kv=3.2, ML_Kvis=0.0005,
-                    MR_R=20, MR_Kv=3.2, MR_Kvis=0.0005,
+                    ML_R=21.5, ML_Kv=10.5, ML_Kvis=0.0005,
+                    MR_R=21.5, MR_Kv=10.5, MR_Kvis=0.0005,
                     latency=0.02):
         p.resetSimulation()
         p.setGravity(0, 0, gravity)
