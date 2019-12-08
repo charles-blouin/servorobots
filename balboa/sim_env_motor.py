@@ -20,6 +20,7 @@ class BalboaEnvSimMotor(gym.Env):
 
     def reset(self):
         self.sim.reset(q1=0, q2=0.7071, q3=0, q4=0.7071)
+        # self.sim.reset(q1=1, q2=0, q3=0, q4=0)
         p.resetDebugVisualizerCamera(cameraDistance=1.5, cameraYaw=55, cameraPitch=-20, cameraTargetPosition=[0, 0, 0])
 
         filename = os.path.join(pybullet_data.getDataPath(), "plane_stadium.sdf")
