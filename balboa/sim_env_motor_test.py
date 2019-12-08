@@ -2,10 +2,21 @@ import gym
 import time
 import json
 
-# python -m balboa.sim_env_motor_test
-def sim_motor_test():
-    env = gym.make('Balboa-motors-render-v1')
-    env.reset()
+### This test is used to check the real robot vs. the simulation
+# python -m balboa.sim_env_motor_check
+def sim_motor_test(render=True, x=0, y=0, z=0.05, q1=0, q2=0, q3=0, q4=1, gravity = -9.81,
+                    ML_R=20, ML_Kv=3.2, ML_Kvis=0.0005,
+                    MR_R=20, MR_Kv=3.2, MR_Kvis=0.0005,
+                    latency=0.02):
+
+    if render:
+        env = gym.make('Balboa-motors-render-v1')
+    else:
+        env = gym.make('Balboa-motors-v1')
+    env.reset(x=x, y=y, z=z, q1=q1, q2=q2, q3=q3, q4=q4, gravity = gravity,
+                    ML_R=ML_R, ML_Kv=ML_Kv, ML_Kvis=ML_Kvis,
+                    MR_R=MR_R, MR_Kv=MR_Kv, MR_Kvis=MR_Kvis,
+                    latency=latency)
 
     actions_array = []
     states_array = []

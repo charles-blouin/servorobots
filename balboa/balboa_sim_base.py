@@ -26,7 +26,8 @@ class BalboaSim:
 
         self.time = 0
         self.last_vel = [0, 0, 0]
-        self.max_voltage = 7.4
+        self.max_voltage = 7.2
+        self.r_battery = 0.5
 
         # Balancer observation: All in SI
         # Motor Rot Left, Rot Right (2)
@@ -52,7 +53,6 @@ class BalboaSim:
         local_rot_vel = qt.qv_mult(qt.q_conjugate(world_ori), world_rot_vel)
         local_vel = qt.qv_mult(qt.q_conjugate(world_ori), world_vel)
         local_grav = qt.qv_mult(qt.q_conjugate(world_ori), (0, 0, 9.81))
-        print(local_grav)
         acc = (np.asarray(local_vel) - np.asarray(self.last_vel))/timestep + np.asarray(local_grav)
         self.last_vel = local_vel
 
@@ -88,16 +88,20 @@ class BalboaSim:
     
             if vel_left < -25: vel_left = -25
             if vel_right < -25: vel_right = -25
-            
-    
 
-
+            ## The voltage goes downs as a function of current due to battery resistance.
+            supplied_voltage = self.max_voltage - self.r_battery * self.max_voltage * \
+                               (abs(self.previous_current_left) * abs(action[0]) +
+                                abs(self.previous_current_right) * abs(action[1]))
             # Apply torque to motors
             torque_left, current_left = self.motor_left.torque_from_voltage(
-                TimestampInput(action[0] * self.max_voltage, self.time), vel_left)
+                TimestampInput(action[0] * supplied_voltage, self.time), vel_left)
             torque_right, current_right = self.motor_right.torque_from_voltage(
-                TimestampInput(action[1] * self.max_voltage, self.time), vel_right)
+                TimestampInput(action[1] * supplied_voltage, self.time), vel_right)
             motor_forces = [torque_left, torque_right]
+
+            self.previous_current_left = current_left
+            self.previous_current_right = current_right
 
             p.setJointMotorControlArray(self.robot, [0, 1], p.VELOCITY_CONTROL, targetVelocities=[0, 0], forces=[0, 0])
             p.setJointMotorControlArray(self.robot, [0, 1], p.TORQUE_CONTROL, forces=motor_forces)
@@ -109,7 +113,7 @@ class BalboaSim:
             self.time += self.sim_timestep
 
 
-        state = np.concatenate(([rot_left, rot_right, vel_left, vel_right], local_rot_vel, acc, [self.max_voltage]))
+        state = np.concatenate(([rot_left, rot_right, vel_left, vel_right], local_rot_vel, acc, [supplied_voltage]))
         self.state = state
 
         #### Check for contact ####
@@ -125,7 +129,7 @@ class BalboaSim:
     def reset(self, x=0, y=0, z=0.05, q1=0, q2=0, q3=0, q4=1, gravity = -9.81,
                     ML_R=20, ML_Kv=3.2, ML_Kvis=0.0005,
                     MR_R=20, MR_Kv=3.2, MR_Kvis=0.0005,
-                    latency=0.00):
+                    latency=0.02):
         p.resetSimulation()
         p.setGravity(0, 0, gravity)
 
@@ -136,6 +140,8 @@ class BalboaSim:
 
         self.previous_rot_left, vel_left, _, _ = p.getJointState(self.robot, 0)
         self.previous_rot_right, vel_right, _, _ = p.getJointState(self.robot, 1)
+        self.previous_current_left = 0
+        self.previous_current_right = 0
         self.old_vel_left = 0
         self.old_vel_right = 0
         self.time = 0

@@ -18,6 +18,15 @@ register(
     tags={ "pg_complexity": 1*1000000 },
     )
 
+register(
+    id='Balboa-motors-v1',
+    entry_point='balboa:BalboaEnvSimMotor',
+    max_episode_steps=1000,
+    reward_threshold=950.0,
+    kwargs={'renders': False},
+    tags={ "pg_complexity": 1*1000000 },
+    )
+
 
 
 import os
