@@ -8,7 +8,7 @@ import os
 ### This environment contains the reward and the location information
 
 
-class BalboaEnvSimMotor(gym.Env):
+class BalboaEnvSimBalance(gym.Env):
     def __init__(self, renders=False):
         self.sim = balboa_sim.BalboaSim(renders=renders)
 
