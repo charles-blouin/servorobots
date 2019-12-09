@@ -16,8 +16,14 @@ class BalboaEnvSimBalance(gym.Env):
         self.action_space = self.sim.action_space
 
     def step(self, action):
-        obs, contact, time = self.sim.step(action)
-        reward = 1
+        obs, contact, time, orientation = self.sim.step(action)
+
+        # Gives 1 at 20 rad (about three wheel turn)
+        distance = (abs(obs[0])+abs(obs[1]))/40
+        # Gives 1 per step for being straight, -0.5 for lying down.
+        upright = 1-abs(p.getEulerFromQuaternion(orientation)[1])/1.55
+        reward = upright - distance
+        print(reward)
         done = 0
         return np.array(obs), reward, done, {"time": time}
 
@@ -25,11 +31,11 @@ class BalboaEnvSimBalance(gym.Env):
                     ML_R=21.5, ML_Kv=10.5, ML_Kvis=0.0005,
                     MR_R=21.5, MR_Kv=10.5, MR_Kvis=0.0005,
                     latency=0.02):
-        q1 = 0
-        q2 = 0.7071
-        q3 = 0
-        q4 = 0.7071
-        self.sim.reset(x=x, y=y, z=z, q1=q1, q2=q2, q3=q3, q4=q4, gravity = gravity,
+        # Lying down q1 = 0 q2 = 0.7071 q3 = 0 q4 = 0.7071
+
+        rand_ori = np.random.uniform(low=-1, high=1, size=(4,)) + np.asarray([0, 0, 0, 4])
+        rand_ori = rand_ori/np.linalg.norm(rand_ori)
+        self.sim.reset(x=x, y=y, z=z, q1=rand_ori[0], q2=rand_ori[1], q3=rand_ori[2], q4=rand_ori[3], gravity = gravity,
                     ML_R=ML_R, ML_Kv=ML_Kv, ML_Kvis=ML_Kvis,
                     MR_R=MR_R, MR_Kv=MR_Kv, MR_Kvis=MR_Kvis,
                     latency=latency)

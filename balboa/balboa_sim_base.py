@@ -122,8 +122,8 @@ class BalboaSim:
             contact = 1
         else:
             contact = 0
-
-        return self.state, contact, self.time
+        position, orientation = p.getBasePositionAndOrientation(self.robot)
+        return self.state, contact, self.time, orientation
 
 
     def reset(self, x=0, y=0, z=0.05, q1=0, q2=0, q3=0, q4=1, gravity = -9.81,
