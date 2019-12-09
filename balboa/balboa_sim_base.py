@@ -35,7 +35,7 @@ class BalboaSim:
         # Angular velocity (3), Local frame
         # Acceleration (3), Local frame for later
         # Voltage (1)
-        self.observation_size = 10
+        self.observation_size = 11
         high_obs = np.ones(self.observation_size)
         self.observation_space = spaces.Box(high_obs * -1, high_obs * 1)
 
@@ -157,3 +157,9 @@ class BalboaSim:
                                         timestep=self.sim_timestep, latency=latency)
         self.motor_right = GearedDcMotor(R=MR_R, Kv=MR_Kv, K_viscous=MR_Kvis, K_load=0,
                                          timestep=self.sim_timestep, latency=latency)
+
+        local_rot_vel, acc = self.local_pose(2, self.sim_timestep * self.action_every_x_timestep)
+        state = np.concatenate(([0, 0, 0, 0], [0, 0, 0], acc, [self.max_voltage]))
+        self.state = state
+
+        return state

@@ -23,8 +23,8 @@ class BalboaEnvSimBalance(gym.Env):
         # Gives 1 per step for being straight, -0.5 for lying down.
         upright = 1-abs(p.getEulerFromQuaternion(orientation)[1])/1.55
         reward = upright - distance
-        print(reward)
-        done = 0
+        done = contact
+        # print(done)
         return np.array(obs), reward, done, {"time": time}
 
     def reset(self, x=0, y=0, z=0.05, q1=0, q2=0, q3=0, q4=1, gravity = -9.81,
@@ -43,6 +43,9 @@ class BalboaEnvSimBalance(gym.Env):
 
         filename = os.path.join(pybullet_data.getDataPath(), "plane_stadium.sdf")
         self.ground_plane_mjcf = p.loadSDF(filename)
+
+        obs = self.sim.reset()
+        return obs
 
     def _seed(self, seed=None):
         return [0]

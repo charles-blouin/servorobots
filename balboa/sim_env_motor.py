@@ -16,7 +16,7 @@ class BalboaEnvSimMotor(gym.Env):
         self.action_space = self.sim.action_space
 
     def step(self, action):
-        obs, contact, time = self.sim.step(action)
+        obs, contact, time, orientation = self.sim.step(action)
         reward = 1
         done = 0
         return np.array(obs), reward, done, {"time": time}
