@@ -14,12 +14,12 @@ if __name__ == '__main__':
     env = SubprocVecEnv([lambda: gym.make('Balboa-balance-v1') for i in range(n_cpu)])
 
     # Define policy
-    policy_kwargs = dict(act_fun=tf.nn.relu, net_arch=[32, 32])
+    policy_kwargs = dict(act_fun=tf.nn.relu, net_arch=[64, 64])
 
     # Train
     model = PPO2("MlpPolicy", env, policy_kwargs=policy_kwargs, verbose=1, tensorboard_log=log_dir, nminibatches=64,
                  n_steps=2048, lam=0.95, gamma=0.99, noptepochs=10,
                  ent_coef=0.0, learning_rate=3e-4, cliprange=0.2)
 
-    model.learn(total_timesteps=500000, reset_num_timesteps=False)
-    model.save("balboa/results/")
+    model.learn(total_timesteps=5000000, reset_num_timesteps=False)
+    model.save("balboa/results/07")

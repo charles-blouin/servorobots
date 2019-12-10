@@ -9,6 +9,8 @@ from servorobots.components.dc_motor import TimestampInput
 
 from servorobots.tools.quaternion import qt
 
+import pybullet_data
+
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 
 # The environment is separated from the robot. This way, it is easy to change the reward, environment, and
@@ -17,6 +19,7 @@ currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfram
 class BalboaSim:
     def __init__(self, renders=False, sim_timestep=0.0020, action_every_x_timestep=5):
         self._renders = renders
+        self.p = p
         if (renders):
             p.connect(p.GUI)
         else:
@@ -56,15 +59,15 @@ class BalboaSim:
         acc = (np.asarray(local_vel) - np.asarray(self.last_vel))/timestep + np.asarray(local_grav)
         self.last_vel = local_vel
 
-
-
         return local_rot_vel, acc
+
+    def render(self, mode='human'):
+        time.sleep(self.sim_timestep*self.action_every_x_timestep)
 
     def step(self, action):
 
         if self._renders:
-            time.sleep(self.sim_timestep)
-
+            time.sleep(self.sim_timestep*self.action_every_x_timestep)
         # Obtain local pose
         local_rot_vel, acc = self.local_pose(2, self.sim_timestep*self.action_every_x_timestep)
         for i in range(0, self.action_every_x_timestep):
@@ -134,7 +137,6 @@ class BalboaSim:
         p.setGravity(0, 0, gravity)
 
 
-
         self.robot = p.loadURDF(os.path.join(currentdir, "balancer.urdf"), [x, y, z], [q1, q2, q3, q4],
                                flags=p.URDF_USE_INERTIA_FROM_FILE)
 
@@ -159,7 +161,11 @@ class BalboaSim:
                                          timestep=self.sim_timestep, latency=latency)
 
         local_rot_vel, acc = self.local_pose(2, self.sim_timestep * self.action_every_x_timestep)
-        state = np.concatenate(([0, 0, 0, 0], [0, 0, 0], acc, [self.max_voltage]))
+        state = np.concatenate(([q1, q2, q3, q4], [0, 0, 0], acc, [self.max_voltage]))
         self.state = state
+
+
+        ##### Environment section
+
 
         return state
