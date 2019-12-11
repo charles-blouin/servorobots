@@ -3,6 +3,7 @@ import time
 import json
 import os
 import tflite_runtime.interpreter as tflite
+import numpy as np
 
 # python3 -m balboa.real_env_balance
 
@@ -24,7 +25,7 @@ states = env.reset()
 start_time = time.time()
 
 #### TF lite
-interpreter = tflite.Interpreter(model_path="results/real/converted_model.tflite")
+interpreter = tflite.Interpreter(model_path="balboa/results/converted_model.tflite")
 interpreter.allocate_tensors()
 input_details = interpreter.get_input_details()
 output_details = interpreter.get_output_details()
@@ -32,11 +33,13 @@ output_details = interpreter.get_output_details()
 for step in range(0, fps * episode_length):
     time_of_this_step = time.time()
 
+    states = np.asarray([states], dtype=np.float32)
     # TF lite
     interpreter.set_tensor(input_details[0]['index'], states)
     interpreter.invoke()
     actions = interpreter.get_tensor(output_details[0]['index'])
 
+    actions = actions.tolist()[0]
 
     states, reward, _, info = env.step(actions)
     timestamps.append(time_of_this_step - start_time)
@@ -45,9 +48,10 @@ for step in range(0, fps * episode_length):
     looptime.append(time.time() - time_of_this_step)
     
     delay = start_time + (step+1) * frame_length - time.time()
-    time.sleep(delay)
+    if(delay > 0):
+        time.sleep(delay)
 
-
+env.step([0,0])
 script_dir = os.path.dirname(__file__) #<-- absolute dir the script is in
 abs_file_path = os.path.join(script_dir, file_name)
 with open(abs_file_path, 'w') as filehandle:
