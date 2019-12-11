@@ -14,4 +14,5 @@ env.reset()
 while(1):
     action = p.readUserDebugParameter(action_slider)
     time.sleep(timestep)
-    env.step([action, action])
+    obs, reward, done, _ = env.step([action, action])
+    print(reward)

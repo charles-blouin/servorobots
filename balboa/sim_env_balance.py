@@ -21,11 +21,15 @@ class BalboaEnvSimBalance(gym.Env):
     def step(self, action):
         obs, contact, time, orientation = self.sim.step(action)
 
-        # Gives 1 at 20 rad (about three wheel turn)
-        distance = (abs(obs[0])+abs(obs[1]))/40
-        # Gives 1 per step for being straight, -0.5 for lying down.
-        upright = 1-abs(self.sim.p.getEulerFromQuaternion(orientation)[1])/1.55
-        reward = upright - distance
+        # Gives 1 at 25 rad (about four wheel turn)
+        distance = (abs(obs[0])+abs(obs[1]))/50
+        f_distance = 1 / (distance**2 + 1)
+        # Gives 1 per step for being straight, 0 for lying down.
+        upright = 1-abs(self.sim.p.getEulerFromQuaternion(orientation)[1])/1.58
+
+        speed_rot = abs(obs)[5]/4 + abs(obs)[6]/4
+        f_speed_rot = 1 / (speed_rot ** 2 + 1)
+        reward = upright * f_distance * f_speed_rot
         done = contact
         return np.array(obs), reward, done, {"time": time}
 
@@ -34,7 +38,7 @@ class BalboaEnvSimBalance(gym.Env):
                     MR_R=21.5, MR_Kv=10.5, MR_Kvis=0.0005,
                     latency=0.02):
         # Lying down q1 = 0 q2 = 0.7071 q3 = 0 q4 = 0.7071
-        rand_ori = np.random.uniform(low=-1, high=1, size=(4,)) + np.asarray([0, 0, 0, 4])
+        rand_ori = np.random.uniform(low=-1, high=1, size=(4,)) + np.asarray([0, 0, 0, 10])
         rand_ori = rand_ori/np.linalg.norm(rand_ori)
         obs = self.sim.reset(x=x, y=y, z=z, q1=rand_ori[0], q2=rand_ori[1], q3=rand_ori[2], q4=rand_ori[3], gravity = gravity,
                     ML_R=ML_R, ML_Kv=ML_Kv, ML_Kvis=ML_Kvis,

@@ -3,8 +3,9 @@ from stable_baselines.common.vec_env import SubprocVecEnv
 from stable_baselines import PPO2
 import tensorflow as tf
 import shutil
+import os
 # python -m balboa.sim_env_balance_play
-file = "balboa/results/07"
+file = "balboa/results/21"
 
 def generate_checkpoint_from_model(model, checkpoint_name):
     with model.graph.as_default():
@@ -15,8 +16,10 @@ def generate_checkpoint_from_model(model, checkpoint_name):
                                    outputs={"action": model.act_model._deterministic_action})
 
 if __name__ == '__main__':
+    if os.path.isdir(file):
+        shutil.rmtree(file)
     model = PPO2.load(file)
-#    shutil.rmtree(file)
+
     generate_checkpoint_from_model(model, file)
     converter = tf.lite.TFLiteConverter.from_saved_model(file)
     tflite_model = converter.convert()
@@ -32,6 +35,5 @@ if __name__ == '__main__':
     while True:
         action, _states = model.predict(obs, deterministic=True)
         obs, rewards, dones, info = env.step(action)
-        if dones[0]:
-            env.reset()
+        print(rewards)
         # env.render()
