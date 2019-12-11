@@ -27,7 +27,8 @@ class BalboaEnvSimBalance(gym.Env):
         # Gives 1 per step for being straight, 0 for lying down.
         upright = 1-abs(self.sim.p.getEulerFromQuaternion(orientation)[1])/1.58
 
-        speed_rot = abs(obs)[5]/4 + abs(obs)[6]/4
+        # Reduce pitch and yaw
+        speed_rot = abs(obs)[5]/4 + abs(obs)[4]/6
         f_speed_rot = 1 / (speed_rot ** 2 + 1)
         reward = upright * f_distance * f_speed_rot
         done = contact

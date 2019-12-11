@@ -5,7 +5,7 @@ import tensorflow as tf
 import shutil
 import os
 # python -m balboa.sim_env_balance_play
-file = "balboa/results/21"
+file = "balboa/results/23"
 
 def generate_checkpoint_from_model(model, checkpoint_name):
     with model.graph.as_default():
@@ -35,5 +35,5 @@ if __name__ == '__main__':
     while True:
         action, _states = model.predict(obs, deterministic=True)
         obs, rewards, dones, info = env.step(action)
-        print(rewards)
+        print(obs[0,4])
         # env.render()

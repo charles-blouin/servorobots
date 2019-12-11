@@ -5,7 +5,7 @@ import tensorflow as tf
 import stable_baselines
 
 log_dir = "balboa/results/"
-id = "22"
+id = "23"
 n_steps = 0
 def callback(_locals, _globals):
     """
@@ -40,5 +40,5 @@ if __name__ == '__main__':
     model.learning_rate = stable_baselines.common.schedules.LinearSchedule(1.0, 0.001, initial_p=0.0005).value
     model.cliprange = stable_baselines.common.schedules.LinearSchedule(1.0, 0.2, initial_p=0.1).value
 
-    model.learn(total_timesteps=1000000, reset_num_timesteps=False, callback=callback)
+    model.learn(total_timesteps=500000, reset_num_timesteps=False, callback=callback)
     model.save("balboa/results/" + id)
