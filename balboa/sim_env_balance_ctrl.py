@@ -16,7 +16,6 @@ class BalboaEnvSimBalanceCtrl(gym.Env):
 
         high_obs = np.ones(self.sim.observation_size + 2)
         self.observation_space = spaces.Box(high_obs * -1, high_obs * 1)
-        self.observation_space = self.sim.observation_space
         self.action_space = self.sim.action_space
 
     def render(self, mode='human'):
@@ -25,9 +24,9 @@ class BalboaEnvSimBalanceCtrl(gym.Env):
     def step(self, action, ctrl=None):
         obs, contact, time, orientation = self.sim.step(action)
         if ctrl == None:
-            np.append(obs, [self.desired_speed, self.desired_speed])
+            obs = np.append(obs, [self.desired_speed, self.desired_speed])
         else:
-            np.append(obs, ctrl)
+            obs = np.append(obs, ctrl)
         # Gives 1 at 25 rad (about four wheel turn)
         # distance = (abs(obs[0] + obs[1]))/50
         speed = (abs(obs[2]-self.desired_speed) + abs(obs[3]-self.desired_speed))/50
@@ -60,6 +59,9 @@ class BalboaEnvSimBalanceCtrl(gym.Env):
 
         filename = os.path.join(pybullet_data.getDataPath(), "plane_stadium.sdf")
         self.ground_plane_mjcf = self.sim.p.loadSDF(filename)
+
+
+        obs = np.append(obs, [self.desired_speed, self.desired_speed])
 
         return obs
 

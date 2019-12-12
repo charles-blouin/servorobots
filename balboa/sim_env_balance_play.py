@@ -49,5 +49,6 @@ if __name__ == '__main__':
         obs, rewards, dones, info = env.step(action)
         speed = (obs[0, 2] + obs[0, 3]) / 25
         f_speed = 1 / (speed ** 2 + 1)
-        print(obs[0,2])
+        if dones[0] == 1:
+            print(obs[0,:])
         # env.render()
