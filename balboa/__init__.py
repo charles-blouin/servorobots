@@ -45,6 +45,24 @@ register(
     tags={ "pg_complexity": 1*1000000 },
     )
 
+register(
+    id='Balboa-balance-ctrl-v1',
+    entry_point='balboa:BalboaEnvSimBalanceCtrl',
+    max_episode_steps=1000,
+    reward_threshold=950.0,
+    kwargs={'renders': False},
+    tags={ "pg_complexity": 1*1000000 },
+    )
+
+register(
+    id='Balboa-balance-ctrl-render-v1',
+    entry_point='balboa:BalboaEnvSimBalanceCtrl',
+    max_episode_steps=1000,
+    reward_threshold=950.0,
+    kwargs={'renders': True},
+    tags={ "pg_complexity": 1*1000000 },
+    )
+
 
 
 import os
@@ -59,3 +77,4 @@ except AttributeError:
     print("Balboa environment not available, we are not on a RPi")
     from balboa.sim_env_motor import BalboaEnvSimMotor
     from balboa.sim_env_balance import BalboaEnvSimBalance
+    from balboa.sim_env_balance_ctrl import BalboaEnvSimBalanceCtrl

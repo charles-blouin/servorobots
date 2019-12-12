@@ -34,8 +34,8 @@ if __name__ == '__main__':
     from stable_baselines import PPO2
     from stable_baselines import A2C
 
-    n_cpu = 16
-    env = SubprocVecEnv([lambda: gym.make('Balboa-balance-v1') for i in range(n_cpu)])
+    n_cpu = 8
+    env = SubprocVecEnv([lambda: gym.make('Balboa-balance-ctrl-v1') for i in range(n_cpu)])
 
     # Define policy
     policy_kwargs = dict(act_fun=tf.nn.relu, net_arch=[32, 32])
@@ -46,8 +46,8 @@ if __name__ == '__main__':
         if args.load_id == None:
             model = PPO2("MlpPolicy", env, policy_kwargs=policy_kwargs, verbose=1, tensorboard_log=log_dir, nminibatches=32,
                          n_steps=2048, lam=0.95, gamma=0.99, noptepochs=10,
-                         ent_coef=0.001, learning_rate=2.5e-4, cliprange=0.2)
-            # model.learning_rate = stable_baselines.common.schedules.LinearSchedule(1.0, 0.001, initial_p=0.0005).value
+                         ent_coef=0.001, cliprange=0.2)
+            model.learning_rate = stable_baselines.common.schedules.LinearSchedule(1.0, 0.001, initial_p=0.0005).value
         else:
             model = PPO2.load(log_dir + str(args.load_id) + ".zip", env=env)
             model.tensorboard_log = log_dir
@@ -56,7 +56,7 @@ if __name__ == '__main__':
 
             model = A2C("MlpPolicy", env, policy_kwargs=policy_kwargs, verbose=1, tensorboard_log=log_dir, nminibatches=32,
                          n_steps=2048, lam=0.95, gamma=0.99, noptepochs=10,
-                         ent_coef=0.001, learning_rate=2.5e-4, cliprange=0.2)
+                         ent_coef=0.001, learning_rate=5e-4, cliprange=0.2)
             # model.learning_rate = stable_baselines.common.schedules.LinearSchedule(1.0, 0.001, initial_p=0.0005).value
         else:
             model = PPO2.load(log_dir + str(args.load_id) + ".zip", env=env)

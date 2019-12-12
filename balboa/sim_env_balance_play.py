@@ -39,7 +39,7 @@ if __name__ == '__main__':
 
     # multiprocess environment
     n_cpu = 1
-    env = SubprocVecEnv([lambda: gym.make('Balboa-balance-render-v1') for i in range(n_cpu)])
+    env = SubprocVecEnv([lambda: gym.make('Balboa-balance-ctrl-render-v1') for i in range(n_cpu)])
     obs = env.reset()
     # When using VecEnv, done is a vector
     done = [False for _ in range(env.num_envs)]
@@ -49,5 +49,5 @@ if __name__ == '__main__':
         obs, rewards, dones, info = env.step(action)
         speed = (obs[0, 2] + obs[0, 3]) / 25
         f_speed = 1 / (speed ** 2 + 1)
-        print(f_speed)
+        print(obs[0,2])
         # env.render()

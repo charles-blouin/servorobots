@@ -1,29 +1,36 @@
 import gym
+from gym import spaces
 import balboa.balboa_sim_base as balboa_sim
 import numpy as np
 import pybullet_data
-
+import random
 import os
 
 ### This environment contains the reward and the location information
 
 
-class BalboaEnvSimBalance(gym.Env):
+class BalboaEnvSimBalanceCtrl(gym.Env):
     def __init__(self, renders=False):
         self.sim = balboa_sim.BalboaSim(renders=renders)
 
+
+        high_obs = np.ones(self.sim.observation_size + 2)
+        self.observation_space = spaces.Box(high_obs * -1, high_obs * 1)
         self.observation_space = self.sim.observation_space
         self.action_space = self.sim.action_space
 
     def render(self, mode='human'):
         self.sim.render()
 
-    def step(self, action):
+    def step(self, action, ctrl=None):
         obs, contact, time, orientation = self.sim.step(action)
-
+        if ctrl == None:
+            np.append(obs, [self.desired_speed, self.desired_speed])
+        else:
+            np.append(obs, ctrl)
         # Gives 1 at 25 rad (about four wheel turn)
         # distance = (abs(obs[0] + obs[1]))/50
-        speed = (abs(obs[2]) + abs(obs[3]))/50
+        speed = (abs(obs[2]-self.desired_speed) + abs(obs[3]-self.desired_speed))/50
         f_speed = 1 / (speed**2 + 1)
         # Gives 1 per step for being straight, 0 for lying down.
         upright = 1-abs(self.sim.p.getEulerFromQuaternion(orientation)[1])/1.58
@@ -47,7 +54,7 @@ class BalboaEnvSimBalance(gym.Env):
                     MR_R=MR_R, MR_Kv=MR_Kv, MR_Kvis=MR_Kvis,
                     latency=latency)
 
-
+        self.desired_speed = (random.random()*2.0 - 1.0)*12
 
         self.sim.p.resetDebugVisualizerCamera(cameraDistance=1.5, cameraYaw=55, cameraPitch=-20, cameraTargetPosition=[0, 0, 0])
 
