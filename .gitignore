@@ -106,10 +106,12 @@ venv.bak/
 # Test results
 results/
 */results/*
+*/results_old/*
 *.zip
 PPO2_cartpole_tensorboard/
 *.tflite
 
+rl-baselines-zoo/
 # Pycharm
 .idea/
 

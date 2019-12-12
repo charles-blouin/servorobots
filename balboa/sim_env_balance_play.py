@@ -4,8 +4,20 @@ from stable_baselines import PPO2
 import tensorflow as tf
 import shutil
 import os
+import balboa.utils
 # python -m balboa.sim_env_balance_play
-file = "balboa/results/23"
+import argparse
+ap = argparse.ArgumentParser(description='Play learning')
+ap.add_argument("-i", "--load_id", default=None, help="Start from test id")
+args = ap.parse_args()
+
+log_dir = "balboa/results/"
+
+if args.load_id == None:
+    id = str(balboa.utils.tensorboard_latest_directory_number(log_dir))
+else:
+    id = str(args.load_id)
+file = "balboa/results/" + id
 
 def generate_checkpoint_from_model(model, checkpoint_name):
     with model.graph.as_default():
@@ -35,5 +47,7 @@ if __name__ == '__main__':
     while True:
         action, _states = model.predict(obs, deterministic=True)
         obs, rewards, dones, info = env.step(action)
-        print(obs[0,4])
+        speed = (obs[0, 2] + obs[0, 3]) / 25
+        f_speed = 1 / (speed ** 2 + 1)
+        print(f_speed)
         # env.render()
