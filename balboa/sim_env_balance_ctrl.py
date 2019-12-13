@@ -29,16 +29,19 @@ class BalboaEnvSimBalanceCtrl(gym.Env):
             obs = np.append(obs, ctrl)
         # Gives 1 at 25 rad (about four wheel turn)
         # distance = (abs(obs[0] + obs[1]))/50
-        speed = (abs(obs[2]-self.desired_speed) + abs(obs[3]-self.desired_speed))/50
+        speed = (abs(obs[2]-self.desired_speed) + abs(obs[3]-self.desired_speed))/10
         f_speed = 1 / (speed**2 + 1)
         # Gives 1 per step for being straight, 0 for lying down.
         upright = 1-abs(self.sim.p.getEulerFromQuaternion(orientation)[1])/1.58
 
-        # Reduce pitch and yaw
-        speed_rot = abs(obs)[5]/4 + abs(obs)[4]/6
+        # Reduce pitch [5] and yaw [4]
+        speed_rot = abs(obs[5])/4 + abs(obs[4])/2
         f_speed_rot = 1 / (speed_rot ** 2 + 1)
         reward = upright * f_speed * f_speed_rot
         done = contact
+
+        obs[0] = 0
+        obs[1] = 0
         return np.array(obs), reward, done, {"time": time}
 
     def reset(self, x=0, y=0, z=0.05, q1=0, q2=0, q3=0, q4=1, gravity = -9.81,
