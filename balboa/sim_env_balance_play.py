@@ -48,5 +48,5 @@ if __name__ == '__main__':
         action, _states = model.predict(obs, deterministic=False)
         obs, rewards, dones, info = env.step(action)
         if dones[0] == 1:
-            print(obs[0,-1])
+            print("Yaw speed: {:.2f}, Speed: {:.2f}".format(obs[0,-1], obs[0,-2]))
         # env.render()

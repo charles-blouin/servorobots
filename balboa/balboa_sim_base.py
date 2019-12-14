@@ -59,7 +59,7 @@ class BalboaSim:
         acc = (np.asarray(local_vel) - np.asarray(self.last_vel))/timestep + np.asarray(local_grav)
         self.last_vel = local_vel
 
-        return local_rot_vel, acc
+        return local_vel, local_rot_vel, acc
 
     def render(self, mode='human'):
         time.sleep(self.sim_timestep*self.action_every_x_timestep)
@@ -69,7 +69,7 @@ class BalboaSim:
         if self._renders:
             time.sleep(self.sim_timestep*self.action_every_x_timestep)
         # Obtain local pose
-        local_rot_vel, acc = self.local_pose(2, self.sim_timestep*self.action_every_x_timestep)
+        local_vel, local_rot_vel, acc = self.local_pose(2, self.sim_timestep*self.action_every_x_timestep)
         for i in range(0, self.action_every_x_timestep):
             # Obtain encoders pose
             rot_left, vel_left, _, _ = p.getJointState(self.robot, 0)
@@ -114,8 +114,8 @@ class BalboaSim:
             # p.resetBasePositionAndOrientation(self.robot, [0, 0.05, 0.5], [0, 0, 0, 1])
             p.stepSimulation()
             self.time += self.sim_timestep
-
-
+        # 0,        1,         2,   3,     4
+        # Vel_left, vel_right, yaw, pitch, roll,
         state_t_0 = np.concatenate(([vel_left, vel_right], local_rot_vel, acc, [supplied_voltage]))
 
         self.state = np.concatenate((state_t_0, self.state_t_m_1, self.state_t_m_2, self.state_t_m_3))
@@ -130,7 +130,7 @@ class BalboaSim:
         else:
             contact = 0
         position, orientation = p.getBasePositionAndOrientation(self.robot)
-        return self.state, contact, self.time, orientation
+        return self.state, contact, self.time, position, orientation, local_vel
 
 
     def reset(self, x=0, y=0, z=0.05, q1=0, q2=0, q3=0, q4=1, gravity = -9.81,
@@ -164,7 +164,7 @@ class BalboaSim:
         self.motor_right = GearedDcMotor(R=MR_R, Kv=MR_Kv, K_viscous=MR_Kvis, K_load=0,
                                          timestep=self.sim_timestep, latency=latency)
 
-        local_rot_vel, acc = self.local_pose(2, self.sim_timestep * self.action_every_x_timestep)
+        local_vel, local_rot_vel, acc = self.local_pose(2, self.sim_timestep * self.action_every_x_timestep)
         state_t_0 = np.concatenate(([0, 0], [0, 0, 0], acc, [self.max_voltage]))
         self.state_t_m_1 = state_t_0
         self.state_t_m_2 = state_t_0
