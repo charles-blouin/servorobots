@@ -87,7 +87,7 @@ class BalboaState:
         acc_y = self.lsm.ay
         acc_z = self.lsm.az
         
-        return np.array([self.rot_left, self.rot_right, self.vel_left, self.vel_right,
+        return np.array([self.vel_left, self.vel_right,
                         gyro_x, gyro_y, gyro_z, acc_x, acc_y, acc_z,
                         self.voltage])
 
@@ -104,15 +104,14 @@ class BalboaEnvMotor(gym.Env):
         self._seed()
         
         # Balancer observation: All in SI
-        # Motor Rot Left, Rot Right (2)
         # Motor Speed Left, Right (2)
         # Angular velocity (3), Local frame
         # Acceleration (3), Local frame for later
         # Voltage (1)
         
-        observation_dim = 10
+        observation_dim = 36 + 2
         high_obs = np.ones([observation_dim])
-        self.observation_space = gym.spaces.Box(high_obs*0, high_obs*1.5)
+        self.observation_space = gym.spaces.Box(-high_obs*10, high_obs*10)
         
         act_high = np.asarray([1, 1])
         self.action_space = gym.spaces.Box(-act_high, act_high)
@@ -126,7 +125,7 @@ class BalboaEnvMotor(gym.Env):
         
 
 
-    def step(self, action):
+    def step(self, action, ctrl = [0, 2]):
         np.clip(action, -1, 1)
         # Step the environment
         left = round(action[0]*self.max_PWM_value)
@@ -134,17 +133,32 @@ class BalboaEnvMotor(gym.Env):
         self.comms.motors(left, right)
         
         self.balboa_state.read_balboa_sensor()
+        state_t_0 = self.balboa_state.state_vector()
+        
+        
+        self.state = np.concatenate((state_t_0, self.state_t_m_1, self.state_t_m_2, 
+                                     self.state_t_m_3, np.asarray(ctrl)))
+        self.state_t_m_3 = self.state_t_m_2
+        self.state_t_m_2 = self.state_t_m_1
+        self.state_t_m_1 = state_t_0
         
         reward = 0
         done = 0
         current_time = time.time() - self.start_time
-        return self.balboa_state.state_vector(), reward, done, {"time": current_time}
+        return self.state, reward, done, {"time": current_time}
         
     def reset(self):
         self.start_time = time.time()
         self.comms.reset_encoders()
         self.balboa_state.read_balboa_sensor()
-        return self.balboa_state.state_vector()
+        state_t_0 = self.balboa_state.state_vector()
+        self.state_t_m_1 = state_t_0
+        self.state_t_m_2 = state_t_0
+        self.state_t_m_3 = state_t_0
+        ctrl = np.asarray([0, 0])
+        self.state = np.concatenate((state_t_0, self.state_t_m_1, self.state_t_m_2, self.state_t_m_3, ctrl))
+        
+        return self.state
         
     def _seed(self, seed=None):
         return [0]
