@@ -47,8 +47,6 @@ if __name__ == '__main__':
     while True:
         action, _states = model.predict(obs, deterministic=False)
         obs, rewards, dones, info = env.step(action)
-        speed = (obs[0, 2] + obs[0, 3]) / 25
-        f_speed = 1 / (speed ** 2 + 1)
         if dones[0] == 1:
-            print(obs[0,11])
+            print(obs[0,-1])
         # env.render()

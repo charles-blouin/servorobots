@@ -23,26 +23,26 @@ class BalboaEnvSimBalanceCtrl(gym.Env):
 
     def step(self, action, ctrl=None):
         obs, contact, time, orientation = self.sim.step(action)
-        if ctrl == None:
-            obs = np.append(obs, [self.desired_speed, self.desired_speed])
-        else:
-            obs = np.append(obs, ctrl)
+
         # Gives 1 at 25 rad (about four wheel turn)
         # distance = (abs(obs[0] + obs[1]))/50
-        speed = (abs(obs[2]-self.desired_speed) + abs(obs[3]-self.desired_speed))/(10-self.difficulty*9)
+        speed = (abs(obs[0]-self.desired_speed) + abs(obs[1]-self.desired_speed))/(10-self.difficulty*9)
         f_speed = 1 / (speed**2 + 1)
         # Gives 1 per step for being straight, 0 for lying down.
         upright = 1-abs(self.sim.p.getEulerFromQuaternion(orientation)[1])/1.58
 
-        # Reduce pitch [5] and yaw [4]
-        speed_rot = abs(obs[5])/4
+        # Reduce pitch [3] and yaw [2]
+        speed_rot = abs(obs[3])/4
         f_speed_rot = 1 / (speed_rot ** 2 + 1)
         reward = upright * f_speed * f_speed_rot
         done = contact
+        #TODO Normalize observations?
+        if ctrl == None:
+            obs = np.append(obs, [self.desired_speed, self.desired_speed])
+        else:
+            obs = np.append(obs, ctrl)
 
-        obs[0] = self.previous_action[0]
-        obs[1] = self.previous_action[1]
-        self.previous_action = action
+
         return np.array(obs), reward, done, {"time": time}
 
     def reset(self, x=0, y=0, z=0.05, q1=0, q2=0, q3=0, q4=1, gravity = -9.81,
@@ -64,7 +64,6 @@ class BalboaEnvSimBalanceCtrl(gym.Env):
         filename = os.path.join(pybullet_data.getDataPath(), "plane_stadium.sdf")
         self.ground_plane_mjcf = self.sim.p.loadSDF(filename)
 
-        self.previous_action = [0, 0]
 
         with open('balboa/progress.txt', 'r') as file:
             self.difficulty = file.read()

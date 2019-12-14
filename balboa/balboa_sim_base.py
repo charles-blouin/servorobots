@@ -38,7 +38,7 @@ class BalboaSim:
         # Angular velocity (3), Local frame
         # Acceleration (3), Local frame for later
         # Voltage (1)
-        self.observation_size = 11
+        self.observation_size = 36
         high_obs = np.ones(self.observation_size)
         self.observation_space = spaces.Box(high_obs * -1, high_obs * 1)
 
@@ -116,8 +116,12 @@ class BalboaSim:
             self.time += self.sim_timestep
 
 
-        state = np.concatenate(([rot_left, rot_right, vel_left, vel_right], local_rot_vel, acc, [supplied_voltage]))
-        self.state = state
+        state_t_0 = np.concatenate(([vel_left, vel_right], local_rot_vel, acc, [supplied_voltage]))
+
+        self.state = np.concatenate((state_t_0, self.state_t_m_1, self.state_t_m_2, self.state_t_m_3))
+        self.state_t_m_3 = self.state_t_m_2
+        self.state_t_m_2 = self.state_t_m_1
+        self.state_t_m_1 = state_t_0
 
         #### Check for contact ####
         contacts = p.getContactPoints(bodyA=self.robot, linkIndexA=-1)
@@ -161,11 +165,14 @@ class BalboaSim:
                                          timestep=self.sim_timestep, latency=latency)
 
         local_rot_vel, acc = self.local_pose(2, self.sim_timestep * self.action_every_x_timestep)
-        state = np.concatenate(([q1, q2, q3, q4], [0, 0, 0], acc, [self.max_voltage]))
-        self.state = state
+        state_t_0 = np.concatenate(([0, 0], [0, 0, 0], acc, [self.max_voltage]))
+        self.state_t_m_1 = state_t_0
+        self.state_t_m_2 = state_t_0
+        self.state_t_m_3 = state_t_0
+        self.state = np.concatenate((state_t_0, self.state_t_m_1, self.state_t_m_2, self.state_t_m_3))
 
 
         ##### Environment section
 
 
-        return state
+        return self.state

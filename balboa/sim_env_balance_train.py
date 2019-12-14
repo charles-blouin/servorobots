@@ -42,7 +42,7 @@ if __name__ == '__main__':
     env = SubprocVecEnv([lambda: gym.make('Balboa-balance-ctrl-v1') for i in range(n_cpu)])
 
     # Define policy
-    policy_kwargs = dict(act_fun=tf.nn.tanh, net_arch=[32, 32])
+    policy_kwargs = dict(act_fun=tf.nn.tanh, net_arch=[64, 64])
 
 
     # Train
