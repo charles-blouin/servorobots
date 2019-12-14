@@ -22,9 +22,13 @@ def callback(_locals, _globals):
     """
     global n_steps, best_mean_reward
     # Print stats every 1000 calls
-    if (n_steps + 1) % 2 == 0:
+    print(n_steps)
+    if (n_steps + 1) % 1 == 0:
         print("########## Saving ##########")
+
         # _locals['self'].save(log_dir + 'best_model_' + id + '.pkl')
+        with open('balboa/progress.txt', 'w') as file:
+            file.write(str(_locals['self'].num_timesteps / _locals['total_timesteps']))
         n_steps += 1
     return True
 
@@ -38,20 +42,21 @@ if __name__ == '__main__':
     env = SubprocVecEnv([lambda: gym.make('Balboa-balance-ctrl-v1') for i in range(n_cpu)])
 
     # Define policy
-    policy_kwargs = dict(act_fun=tf.nn.relu, net_arch=[32, 32])
+    policy_kwargs = dict(act_fun=tf.nn.tanh, net_arch=[32, 32])
 
 
     # Train
     if args.algo == "ppo2":
+        # nminibatches=32, n_steps=512, LR: 0.001, initial_p=0.0005
         if args.load_id == None:
             model = PPO2("MlpPolicy", env, policy_kwargs=policy_kwargs, verbose=1, tensorboard_log=log_dir, nminibatches=32,
-                         n_steps=1024, lam=0.95, gamma=0.99, noptepochs=10,
+                         n_steps=512, lam=0.95, gamma=0.99, noptepochs=10,
                          ent_coef=0.001, cliprange=0.2)
         else:
             print("Loading model: " + str(args.load_id))
             model = PPO2.load(log_dir + str(args.load_id) + ".zip", env=env)
             model.tensorboard_log = log_dir
-        model.learning_rate = stable_baselines.common.schedules.LinearSchedule(1.0, 0.001, initial_p=0.0005).value
+        model.learning_rate = stable_baselines.common.schedules.LinearSchedule(1.0, 0.0005, initial_p=0.000).value
     if args.algo == "a2c":
         if args.load_id == None:
             print("Training with A2C")
@@ -62,5 +67,5 @@ if __name__ == '__main__':
             model = PPO2.load(log_dir + str(args.load_id) + ".zip", env=env)
             model.tensorboard_log = log_dir
 
-    model.learn(total_timesteps=1000000, reset_num_timesteps=False, callback=callback)
+    model.learn(total_timesteps=3000000, reset_num_timesteps=False, callback=callback)
     model.save(log_dir + str(id+1))
