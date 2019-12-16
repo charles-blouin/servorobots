@@ -6,6 +6,7 @@ import pybullet as p
 from gym import spaces
 from servorobots.components.dc_motor import GearedDcMotor
 from servorobots.components.dc_motor import TimestampInput
+import random
 
 from servorobots.tools.quaternion import qt
 
@@ -38,12 +39,12 @@ class BalboaSim:
         # Angular velocity (3), Local frame
         # Acceleration (3), Local frame for later
         # Voltage (1)
-        self.observation_size = 36
+        self.observation_size = 38
         high_obs = np.ones(self.observation_size)
         self.observation_space = spaces.Box(high_obs * -1, high_obs * 1)
 
-        self.action_size = 2
-        act_high = np.asarray([1, 1])
+        self.action_size = 4
+        act_high = np.asarray([1, 1, 1, 1])
         self.action_space = spaces.Box(-act_high, act_high)
 
     def local_pose(self, linkID, timestep):
@@ -114,11 +115,13 @@ class BalboaSim:
             # p.resetBasePositionAndOrientation(self.robot, [0, 0.05, 0.5], [0, 0, 0, 1])
             p.stepSimulation()
             self.time += self.sim_timestep
+        self.internal_state = [self.internal_state[0] * 0.95 + 0.05 * action[2],
+                               self.internal_state[1] * 0.99 + 0.01 * action[3]]
         # 0,        1,         2,   3,     4
         # Vel_left, vel_right, yaw, pitch, roll,
         state_t_0 = np.concatenate(([vel_left, vel_right], local_rot_vel, acc, [supplied_voltage]))
 
-        self.state = np.concatenate((state_t_0, self.state_t_m_1, self.state_t_m_2, self.state_t_m_3))
+        self.state = np.concatenate((state_t_0, self.state_t_m_1, self.state_t_m_2, self.state_t_m_3, np.asarray(self.internal_state)))
         self.state_t_m_3 = self.state_t_m_2
         self.state_t_m_2 = self.state_t_m_1
         self.state_t_m_1 = state_t_0
@@ -139,10 +142,26 @@ class BalboaSim:
                     latency=0.02):
         p.resetSimulation()
         p.setGravity(0, 0, gravity)
+        self.internal_state = [0, 0]
 
+        try:
+            offset_cg_x = (random.random() * 2 - 1) * 0.002 + -0.003
+            offset_cg_z = (random.random() * 2 - 1) * 0.005 + 0.03
+            cg = str(offset_cg_x) + ", 0, " + str(offset_cg_z)
+            doc = xml.dom.minidom.parse("balboa/balancer.urdf")
+            doc.getElementsByTagName("link")[0].getElementsByTagName("inertial")[0].getElementsByTagName("origin")[
+                0].setAttribute("xyz", cg)
+            with open("balboa/balancer_randomized.urdf", "w") as file_handle:
+                file_handle.write(doc.toxml())
+        except:
+            pass
 
-        self.robot = p.loadURDF(os.path.join(currentdir, "balancer.urdf"), [x, y, z], [q1, q2, q3, q4],
+        try:
+            self.robot = p.loadURDF(os.path.join(currentdir, "balancer_randomized.urdf"), [x, y, z], [q1, q2, q3, q4],
                                flags=p.URDF_USE_INERTIA_FROM_FILE)
+        except:
+            self.robot = p.loadURDF(os.path.join(currentdir, "balancer.urdf"), [x, y, z], [q1, q2, q3, q4],
+                                    flags=p.URDF_USE_INERTIA_FROM_FILE)
 
         self.previous_rot_left, vel_left, _, _ = p.getJointState(self.robot, 0)
         self.previous_rot_right, vel_right, _, _ = p.getJointState(self.robot, 1)
@@ -169,7 +188,7 @@ class BalboaSim:
         self.state_t_m_1 = state_t_0
         self.state_t_m_2 = state_t_0
         self.state_t_m_3 = state_t_0
-        self.state = np.concatenate((state_t_0, self.state_t_m_1, self.state_t_m_2, self.state_t_m_3))
+        self.state = np.concatenate((state_t_0, self.state_t_m_1, self.state_t_m_2, self.state_t_m_3, np.asarray(self.internal_state)))
 
 
         ##### Environment section

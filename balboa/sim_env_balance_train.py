@@ -4,6 +4,8 @@ import tensorflow as tf
 import balboa.utils
 import stable_baselines
 import argparse
+import random
+import xml.dom.minidom
 
 ap = argparse.ArgumentParser(description='Learn or continue learning')
 ap.add_argument("-i", "--load_id", default=None, help="Start from test id")
@@ -24,11 +26,15 @@ def callback(_locals, _globals):
     # Print stats every 1000 calls
     print(n_steps)
     if (n_steps + 1) % 1 == 0:
+        difficulty = _locals['self'].num_timesteps / _locals['total_timesteps']
         print("########## Saving ##########")
 
+
+
         # _locals['self'].save(log_dir + 'best_model_' + id + '.pkl')
-        with open('balboa/progress.txt', 'w') as file:
-            file.write(str(_locals['self'].num_timesteps / _locals['total_timesteps']))
+        #with open('balboa/progress.txt', 'w') as file:
+
+            #file.write(str(difficulty))
         n_steps += 1
     return True
 
@@ -50,7 +56,7 @@ if __name__ == '__main__':
         # nminibatches=32, n_steps=512, LR: 0.001, initial_p=0.0005
         if args.load_id == None:
             model = PPO2("MlpPolicy", env, policy_kwargs=policy_kwargs, verbose=1, tensorboard_log=log_dir, nminibatches=32,
-                         n_steps=512, lam=0.95, gamma=0.99, noptepochs=10,
+                         n_steps=2048, lam=0.95, gamma=0.99, noptepochs=10,
                          ent_coef=0.001, cliprange=0.2)
         else:
             print("Loading model: " + str(args.load_id))
@@ -67,5 +73,5 @@ if __name__ == '__main__':
             model = PPO2.load(log_dir + str(args.load_id) + ".zip", env=env)
             model.tensorboard_log = log_dir
 
-    model.learn(total_timesteps=2000000, reset_num_timesteps=False, callback=callback)
+    model.learn(total_timesteps=1000000, reset_num_timesteps=False, callback=callback)
     model.save(log_dir + str(id+1))

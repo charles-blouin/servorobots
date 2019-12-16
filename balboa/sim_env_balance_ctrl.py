@@ -32,19 +32,22 @@ class BalboaEnvSimBalanceCtrl(gym.Env):
         ### Reward Calculation ###
         # The f_ are factors that are 1 when ideal, and tend to 0 when not ideal. They are annealed during training
         # to be always 1 at the beginning.
-        speed = (local_vel[2] - self.desired_speed) * 4 * self.difficulty * 2 # Max speed, 0.25 m/s.
+        speed = (local_vel[2] - self.desired_speed) * 8 * self.difficulty # Max speed, 0.25 m/s.
         f_speed = 1 / (speed**2 + 1)
 
-        speed_yaw = (obs[2] - self.desired_yaw) * 0.33 * self.difficulty * 2
+        speed_yaw = (obs[2] - self.desired_yaw) * 1
         f_speed_yaw = 1 / (speed_yaw**2 + 1)
 
         # Reduce oscillation pitch [3]
-        speed_pitch = abs(obs[3]) * self.difficulty * 4
-        f_speed_pitch = 1 / (speed_pitch ** 2 + 1)
+        act_change = (abs(action [0] - self.last_action_0) + abs(action [1] - self.last_action_1)) * self.difficulty * 4
+        f_act_change = 1 / (act_change ** 2 + 1)
+
+        self.last_action_0 = action[0]
+        self.last_action_1 = action[1]
 
         # Gives 1 per step for being straight, 0 for lying down.
         upright = 1 - abs(self.sim.p.getEulerFromQuaternion(orientation)[1]) / 1.58
-        reward = upright * f_speed * f_speed_yaw * f_speed_pitch
+        reward = upright * f_speed * f_speed_yaw * f_act_change
         done = contact
         #TODO Normalize observations?
         if self.sim._renders:
@@ -65,7 +68,7 @@ class BalboaEnvSimBalanceCtrl(gym.Env):
                     latency=0.02):
         # Lying down q1 = 0 q2 = 0.7071 q3 = 0 q4 = 0.7071
         rand_num = random.random()*2-1
-        rand_ori = np.asarray([0, rand_num, 0, abs(rand_num)]) + np.asarray([0, 0, 0, 3])
+        rand_ori = np.asarray([0, rand_num, 0, abs(rand_num)]) + np.asarray([0, 0, 0, 100])
         rand_ori = rand_ori/np.linalg.norm(rand_ori)
 
         # rand_ori = np.asarray([0, -0.7071, 0, 0.7071])
@@ -77,11 +80,14 @@ class BalboaEnvSimBalanceCtrl(gym.Env):
         self.desired_speed = (random.random()*2.0 - 1.0) * 0.25
         self.desired_yaw = (random.random()*2.0 - 1.0) * 3 # About 1 turn per second
 
-        self.sim.p.resetDebugVisualizerCamera(cameraDistance=1.5, cameraYaw=0, cameraPitch=-20, cameraTargetPosition=[0, 0, 0])
+        self.sim.p.resetDebugVisualizerCamera(cameraDistance=1.5, cameraYaw=0, cameraPitch=-89, cameraTargetPosition=[0, 0, 0])
 
         filename = os.path.join(pybullet_data.getDataPath(), "plane_stadium.sdf")
         self.ground_plane_mjcf = self.sim.p.loadSDF(filename)
 
+        self.last_pitch_vel = 0
+        self.last_action_0 = 0
+        self.last_action_1 = 0
 
         with open('balboa/progress.txt', 'r') as file:
             self.difficulty = file.read()
