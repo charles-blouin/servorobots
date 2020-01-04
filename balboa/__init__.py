@@ -63,6 +63,15 @@ register(
     tags={ "pg_complexity": 1*1000000 },
     )
 
+register(
+    id='Performance-env-v1',
+    entry_point='balboa:PerformanceEnvSim',
+    max_episode_steps=1000,
+    reward_threshold=950.0,
+    kwargs={'renders': False},
+    tags={ "pg_complexity": 1*1000000 },
+    )
+
 
 
 import os
@@ -78,3 +87,4 @@ except AttributeError:
     from balboa.sim_env_motor import BalboaEnvSimMotor
     from balboa.sim_env_balance import BalboaEnvSimBalance
     from balboa.sim_env_balance_ctrl import BalboaEnvSimBalanceCtrl
+    from balboa.sim_env_performance import PerformanceEnvSim

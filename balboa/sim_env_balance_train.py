@@ -6,6 +6,7 @@ import stable_baselines
 import argparse
 import random
 import xml.dom.minidom
+import pybulletgym
 
 ap = argparse.ArgumentParser(description='Learn or continue learning')
 ap.add_argument("-i", "--load_id", default=None, help="Start from test id")
@@ -44,18 +45,21 @@ if __name__ == '__main__':
     from stable_baselines import PPO2
     from stable_baselines import A2C
 
-    n_cpu = 16
+    n_cpu = 1
+    # Balboa-balance-ctrl-v1
+    # Balboa-balance-ctrl-v1
     env = SubprocVecEnv([lambda: gym.make('Balboa-balance-ctrl-v1') for i in range(n_cpu)])
 
     # Define policy
-    policy_kwargs = dict(act_fun=tf.nn.tanh, net_arch=[64, 64])
-
-
+    policy_kwargs = dict(act_fun=tf.nn.tanh, net_arch=[128, 128])
+    print("Tensorflow ########################################")
+    sess = tf.Session(config=tf.ConfigProto(log_device_placement=True))
     # Train
     if args.algo == "ppo2":
         # nminibatches=32, n_steps=512, LR: 0.001, initial_p=0.0005
         if args.load_id == None:
-            model = PPO2("MlpPolicy", env, policy_kwargs=policy_kwargs, verbose=1, tensorboard_log=log_dir, nminibatches=32,
+            # tensorboard_log=log_dir
+            model = PPO2("MlpPolicy", env, policy_kwargs=policy_kwargs, verbose=1, nminibatches=32,
                          n_steps=2048, lam=0.95, gamma=0.99, noptepochs=10,
                          ent_coef=0.001, cliprange=0.2)
         else:

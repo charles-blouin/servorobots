@@ -11,8 +11,10 @@ import os
 
 class BalboaEnvSimBalanceCtrl(gym.Env):
     def __init__(self, renders=False):
+        self.renders = renders
         self.sim = balboa_sim.BalboaSim(renders=renders)
-
+        self.resets = 0
+        self.num_timestep = 0
         if renders:
             self.slider_speed = self.sim.p.addUserDebugParameter("Speed", -0.25, 0.25, 0)
             self.slider_yaw_speed = self.sim.p.addUserDebugParameter("Yaw Speed", -3, 3, 0)
@@ -26,7 +28,7 @@ class BalboaEnvSimBalanceCtrl(gym.Env):
 
     def step(self, action, ctrl=None):
         obs, contact, time, position, orientation, local_vel = self.sim.step(action)
-
+        self.num_timestep +=1
 
 
         ### Reward Calculation ###
@@ -67,6 +69,7 @@ class BalboaEnvSimBalanceCtrl(gym.Env):
                     MR_R=21.5, MR_Kv=10.5, MR_Kvis=0.0005,
                     latency=0.02):
         # Lying down q1 = 0 q2 = 0.7071 q3 = 0 q4 = 0.7071
+
         rand_num = random.random()*2-1
         rand_ori = np.asarray([0, rand_num, 0, abs(rand_num)]) + np.asarray([0, 0, 0, 100])
         rand_ori = rand_ori/np.linalg.norm(rand_ori)
@@ -80,20 +83,21 @@ class BalboaEnvSimBalanceCtrl(gym.Env):
         self.desired_speed = (random.random()*2.0 - 1.0) * 0.25
         self.desired_yaw = (random.random()*2.0 - 1.0) * 3 # About 1 turn per second
 
-        self.sim.p.resetDebugVisualizerCamera(cameraDistance=1.5, cameraYaw=0, cameraPitch=-89, cameraTargetPosition=[0, 0, 0])
+        if self.renders:
+            self.sim.p.resetDebugVisualizerCamera(cameraDistance=1.5, cameraYaw=0, cameraPitch=-89, cameraTargetPosition=[0, 0, 0])
 
-        filename = os.path.join(pybullet_data.getDataPath(), "plane_stadium.sdf")
-        self.ground_plane_mjcf = self.sim.p.loadSDF(filename)
+        if self.resets == 0:
+            filename = os.path.join(pybullet_data.getDataPath(), "plane_stadium.sdf")
+            self.ground_plane_mjcf = self.sim.p.loadSDF(filename)
 
         self.last_pitch_vel = 0
         self.last_action_0 = 0
         self.last_action_1 = 0
 
-        with open('balboa/progress.txt', 'r') as file:
-            self.difficulty = file.read()
-            self.difficulty = float(self.difficulty)
+        self.difficulty = self.num_timestep/100000
 
         obs = np.append(obs, [self.desired_speed, self.desired_yaw])
+        self.resets += 1
 
         return obs
 

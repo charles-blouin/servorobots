@@ -19,6 +19,7 @@ currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfram
 
 class BalboaSim:
     def __init__(self, renders=False, sim_timestep=0.0020, action_every_x_timestep=5):
+        self.resets = 0
         self._renders = renders
         self.p = p
         if (renders):
@@ -71,46 +72,46 @@ class BalboaSim:
             time.sleep(self.sim_timestep*self.action_every_x_timestep)
         # Obtain local pose
         local_vel, local_rot_vel, acc = self.local_pose(2, self.sim_timestep*self.action_every_x_timestep)
+
+        # Obtain encoders pose
+        rot_left, vel_left, _, _ = p.getJointState(self.robot, 0)
+        rot_right, vel_right, _, _ = p.getJointState(self.robot, 1)
+
+        """
+
+        vel_left = self.old_vel_left *0.9 + vel_left*0.1
+        self.old_vel_left = vel_left
+        vel_right = self.old_vel_right * 0.9 + vel_right * 0.1
+        self.old_vel_right = vel_right
+
+        """
+        ''' '''
+        vel_left = (rot_left - self.previous_rot_left) / 0.002
+        self.previous_rot_left = rot_left
+        vel_right = (rot_right - self.previous_rot_right) / 0.002
+        self.previous_rot_right = rot_right
+
+        if vel_left < -25: vel_left = -25
+        if vel_right < -25: vel_right = -25
+
+        ## The voltage goes downs as a function of current due to battery resistance.
+        supplied_voltage = self.max_voltage - self.r_battery * self.max_voltage * \
+                           abs(self.previous_current_left) + \
+                           abs(self.previous_current_right)
+        # Apply torque to motors
+        torque_left, current_left = self.motor_left.torque_from_voltage(
+            TimestampInput(action[0] * supplied_voltage, self.time), vel_left)
+        torque_right, current_right = self.motor_right.torque_from_voltage(
+            TimestampInput(action[1] * supplied_voltage, self.time), vel_right)
+        motor_forces = [torque_left, torque_right]
+
+        self.previous_current_left = current_left
+        self.previous_current_right = current_right
+
+        p.setJointMotorControlArray(self.robot, [0, 1], p.VELOCITY_CONTROL, targetVelocities=[0, 0], forces=[0, 0])
+        p.setJointMotorControlArray(self.robot, [0, 1], p.TORQUE_CONTROL, forces=motor_forces)
+
         for i in range(0, self.action_every_x_timestep):
-            # Obtain encoders pose
-            rot_left, vel_left, _, _ = p.getJointState(self.robot, 0)
-            rot_right, vel_right, _, _ = p.getJointState(self.robot, 1)
-
-            """
-    
-            vel_left = self.old_vel_left *0.9 + vel_left*0.1
-            self.old_vel_left = vel_left
-            vel_right = self.old_vel_right * 0.9 + vel_right * 0.1
-            self.old_vel_right = vel_right
-            
-            """
-            ''' '''
-            vel_left = (rot_left - self.previous_rot_left) / 0.002
-            self.previous_rot_left = rot_left
-            vel_right = (rot_right - self.previous_rot_right) / 0.002
-            self.previous_rot_right = rot_right
-    
-            if vel_left < -25: vel_left = -25
-            if vel_right < -25: vel_right = -25
-
-            ## The voltage goes downs as a function of current due to battery resistance.
-            supplied_voltage = self.max_voltage - self.r_battery * self.max_voltage * \
-                               abs(self.previous_current_left) + \
-                                abs(self.previous_current_right)
-            # Apply torque to motors
-            torque_left, current_left = self.motor_left.torque_from_voltage(
-                TimestampInput(action[0] * supplied_voltage, self.time), vel_left)
-            torque_right, current_right = self.motor_right.torque_from_voltage(
-                TimestampInput(action[1] * supplied_voltage, self.time), vel_right)
-            motor_forces = [torque_left, torque_right]
-
-            self.previous_current_left = current_left
-            self.previous_current_right = current_right
-
-            p.setJointMotorControlArray(self.robot, [0, 1], p.VELOCITY_CONTROL, targetVelocities=[0, 0], forces=[0, 0])
-            p.setJointMotorControlArray(self.robot, [0, 1], p.TORQUE_CONTROL, forces=motor_forces)
-
-
 
             # p.resetBasePositionAndOrientation(self.robot, [0, 0.05, 0.5], [0, 0, 0, 1])
             p.stepSimulation()
@@ -140,28 +141,31 @@ class BalboaSim:
                     ML_R=21.5, ML_Kv=10.5, ML_Kvis=0.0005,
                     MR_R=21.5, MR_Kv=10.5, MR_Kvis=0.0005,
                     latency=0.02):
-        p.resetSimulation()
-        p.setGravity(0, 0, gravity)
-        self.internal_state = [0, 0]
 
-        try:
-            offset_cg_x = (random.random() * 2 - 1) * 0.002 + -0.003
-            offset_cg_z = (random.random() * 2 - 1) * 0.005 + 0.03
-            cg = str(offset_cg_x) + ", 0, " + str(offset_cg_z)
-            doc = xml.dom.minidom.parse("balboa/balancer.urdf")
-            doc.getElementsByTagName("link")[0].getElementsByTagName("inertial")[0].getElementsByTagName("origin")[
-                0].setAttribute("xyz", cg)
-            with open("balboa/balancer_randomized.urdf", "w") as file_handle:
-                file_handle.write(doc.toxml())
-        except:
-            pass
+        if self.resets == 0:
+            p.resetSimulation()
+            p.setGravity(0, 0, gravity)
+            print("hi!")
 
-        try:
-            self.robot = p.loadURDF(os.path.join(currentdir, "balancer_randomized.urdf"), [x, y, z], [q1, q2, q3, q4],
-                               flags=p.URDF_USE_INERTIA_FROM_FILE)
-        except:
-            self.robot = p.loadURDF(os.path.join(currentdir, "balancer.urdf"), [x, y, z], [q1, q2, q3, q4],
-                                    flags=p.URDF_USE_INERTIA_FROM_FILE)
+            try:
+                offset_cg_x = (random.random() * 2 - 1) * 0.002 + -0.003
+                offset_cg_z = (random.random() * 2 - 1) * 0.005 + 0.03
+                cg = str(offset_cg_x) + ", 0, " + str(offset_cg_z)
+                doc = xml.dom.minidom.parse("balboa/balancer.urdf")
+                doc.getElementsByTagName("link")[0].getElementsByTagName("inertial")[0].getElementsByTagName("origin")[
+                    0].setAttribute("xyz", cg)
+                with open("balboa/balancer_randomized.urdf", "w") as file_handle:
+                    file_handle.write(doc.toxml())
+            except:
+                pass
+
+            try:
+                self.robot = p.loadURDF(os.path.join(currentdir, "balancer_randomized.urdf"), [x, y, z], [q1, q2, q3, q4],
+                                   flags=p.URDF_USE_INERTIA_FROM_FILE)
+            except:
+                self.robot = p.loadURDF(os.path.join(currentdir, "balancer.urdf"), [x, y, z], [q1, q2, q3, q4],
+                                        flags=p.URDF_USE_INERTIA_FROM_FILE)
+
 
         self.previous_rot_left, vel_left, _, _ = p.getJointState(self.robot, 0)
         self.previous_rot_right, vel_right, _, _ = p.getJointState(self.robot, 1)
@@ -171,17 +175,20 @@ class BalboaSim:
         self.old_vel_right = 0
         self.time = 0
 
+        self.motor_left = GearedDcMotor(R=ML_R, Kv=ML_Kv, K_viscous=ML_Kvis, K_load=0,
+                                        timestep=self.sim_timestep, latency=latency)
+        self.motor_right = GearedDcMotor(R=MR_R, Kv=MR_Kv, K_viscous=MR_Kvis, K_load=0,
+                                         timestep=self.sim_timestep, latency=latency)
+
         # Change friction of main body
         p.changeDynamics(self.robot, -1, lateralFriction=0.3, restitution=0.5)
         # Change friction of left wheel
         p.changeDynamics(self.robot, 0, lateralFriction=2, restitution=0.0)
         # Change friction of the right wheel
         p.changeDynamics(self.robot, 1, lateralFriction=2, restitution=0.0)
+        
 
-        self.motor_left = GearedDcMotor(R=ML_R, Kv=ML_Kv, K_viscous=ML_Kvis, K_load=0,
-                                        timestep=self.sim_timestep, latency=latency)
-        self.motor_right = GearedDcMotor(R=MR_R, Kv=MR_Kv, K_viscous=MR_Kvis, K_load=0,
-                                         timestep=self.sim_timestep, latency=latency)
+        self.internal_state = [0, 0]
 
         local_vel, local_rot_vel, acc = self.local_pose(2, self.sim_timestep * self.action_every_x_timestep)
         state_t_0 = np.concatenate(([0, 0], [0, 0, 0], acc, [self.max_voltage]))
@@ -192,6 +199,6 @@ class BalboaSim:
 
 
         ##### Environment section
-
+        self.resets += 1
 
         return self.state

@@ -5,6 +5,7 @@ import tensorflow as tf
 import shutil
 import os
 import balboa.utils
+import time
 # python -m balboa.sim_env_balance_play
 import argparse
 ap = argparse.ArgumentParser(description='Play learning')
@@ -38,8 +39,9 @@ if __name__ == '__main__':
     open(file + "/converted_model.tflite", "wb").write(tflite_model)
 
     # multiprocess environment
-    n_cpu = 1
-    env = SubprocVecEnv([lambda: gym.make('Balboa-balance-ctrl-render-v1') for i in range(n_cpu)])
+    n_cpu = 2
+    # 'Balboa-balance-ctrl-render-v1'
+    env = SubprocVecEnv([lambda: gym.make('Balboa-balance-ctrl-render-v1', renders=True) for i in range(n_cpu)])
     obs = env.reset()
     # When using VecEnv, done is a vector
     done = [False for _ in range(env.num_envs)]
@@ -48,9 +50,8 @@ if __name__ == '__main__':
         action, _states = model.predict(obs, deterministic=False)
         obs, rewards, dones, info = env.step(action)
         rewards[0] += rewards[0]
-        print(obs[0, -1])
         if dones[0] == 1:
-            print("Yaw speed: {:.2f}, Speed: {:.2f}".format(obs[0,-1], obs[0,-2]))
-            print(rewards[0])
+            # print("Yaw speed: {:.2f}, Speed: {:.2f}".format(obs[0,-1], obs[0,-2]))
+            # print(rewards[0])
             rewards[0] = 0
         # env.render()
