@@ -1,4 +1,4 @@
-# python -m balboa.sim_env_balance_train
+# python -m balboa.sim_env_ant_train
 import gym
 import tensorflow as tf
 import balboa.utils
@@ -7,6 +7,7 @@ import argparse
 import random
 import xml.dom.minidom
 import pybulletgym
+
 
 ap = argparse.ArgumentParser(description='Learn or continue learning')
 ap.add_argument("-i", "--load_id", default=None, help="Start from test id")
@@ -45,10 +46,9 @@ if __name__ == '__main__':
     from stable_baselines import PPO2
     from stable_baselines import A2C
 
-    n_cpu = 1
-    # Balboa-balance-ctrl-v1
-    # Balboa-balance-ctrl-v1
-    env = SubprocVecEnv([lambda: gym.make('Balboa-balance-ctrl-v1') for i in range(n_cpu)])
+    n_cpu = 8
+
+    env = SubprocVecEnv([lambda: gym.make('AntPyBulletEnv-v0') for i in range(n_cpu)])
 
     # Define policy
     policy_kwargs = dict(act_fun=tf.nn.tanh, net_arch=[64, 64])
@@ -56,17 +56,16 @@ if __name__ == '__main__':
     sess = tf.Session(config=tf.ConfigProto(log_device_placement=True))
     # Train
     if args.algo == "ppo2":
-        # nminibatches=32, n_steps=512, LR: 0.001, initial_p=0.0005
         if args.load_id == None:
             # tensorboard_log=log_dir
             model = PPO2("MlpPolicy", env, policy_kwargs=policy_kwargs, verbose=1, nminibatches=32,
-                         n_steps=2048, lam=0.95, gamma=0.99, noptepochs=10,
-                         ent_coef=0.001, cliprange=0.2)
+                         n_steps=256, lam=0.95, gamma=0.99, noptepochs=10,
+                         ent_coef=0.0, cliprange=0.2)
         else:
             print("Loading model: " + str(args.load_id))
             model = PPO2.load(log_dir + str(args.load_id) + ".zip", env=env)
-            model.tensorboard_log = log_dir
-        model.learning_rate = stable_baselines.common.schedules.LinearSchedule(1.0, 0.0005, initial_p=0.0003).value
+        model.tensorboard_log = log_dir
+        model.learning_rate = stable_baselines.common.schedules.LinearSchedule(1.0, 0.00025, initial_p=0.00025  ).value
     if args.algo == "a2c":
         if args.load_id == None:
             print("Training with A2C")
@@ -77,5 +76,5 @@ if __name__ == '__main__':
             model = PPO2.load(log_dir + str(args.load_id) + ".zip", env=env)
             model.tensorboard_log = log_dir
 
-    model.learn(total_timesteps=1000000, reset_num_timesteps=False, callback=callback)
+    model.learn(total_timesteps=2000000, reset_num_timesteps=False, callback=callback)
     model.save(log_dir + str(id+1))
