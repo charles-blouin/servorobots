@@ -94,7 +94,8 @@ def create_robot():
     print(len(jointTypes))
     print(len(axis))
 
-    sphereUid = p.createMultiBody(baseMass=mass,
+    '''
+    robot_urdf = p.createMultiBody(baseMass=mass,
                                   baseCollisionShapeIndex=col_body,
                                   baseVisualShapeIndex=vis_body,
                                   basePosition=basePosition,
@@ -109,5 +110,7 @@ def create_robot():
                                   linkParentIndices=linkParentIndices,
                                   linkJointTypes=jointTypes,
                                   linkJointAxis=axis)
-
-    return sphereUid
+    '''
+    robot_urdf = p.loadURDF('walker_a/urdf/walker_a.urdf', basePosition=[0, 0, 1])
+# <mesh filename="body.obj" scale="0 0 0"/>
+    return robot_urdf
