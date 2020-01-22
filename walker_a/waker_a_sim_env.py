@@ -32,6 +32,7 @@ class WalkerA(gym.Env):
                     MR_R=21.5, MR_Kv=10.5, MR_Kvis=0.0005,
                     latency=0.02):
         self.sim.reset()
+
         obs = np.asarray([1])
         return obs
 

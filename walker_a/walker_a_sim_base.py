@@ -12,7 +12,7 @@ currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfram
 
 
 class WalkerASim:
-    def __init__(self, renders=False, sim_timestep=0.0020, action_every_x_timestep=5):
+    def __init__(self, renders=False, sim_timestep=0.0025, action_every_x_timestep=4):
         self._renders = renders
         self.p = p
         if (renders):
@@ -26,12 +26,9 @@ class WalkerASim:
         self.last_vel = [0, 0, 0]
         self.max_voltage = 7.2
         self.r_battery = 0.4
-
-        self.number_of_frame_in_state = 1
         self.include_gyro = False
         self.include_joint_velocity = True
-        self.observation_size = 3*self.include_gyro + self.number_of_frame_in_state * 12 + \
-                                self.number_of_frame_in_state*self.include_joint_velocity * 12
+        self.observation_size = 3*self.include_gyro + 12 + self.include_joint_velocity * 12
         high_obs = np.ones(self.observation_size)
         self.observation_space = spaces.Box(high_obs * -1, high_obs * 1)
 
@@ -60,8 +57,6 @@ class WalkerASim:
         joint_velocities = [state[1] for state in joint_states]
         return joint_positions, joint_velocities
 
-    def get_state_vector(self, jointPosition, jointVelocity):
-        jointPosition, jointVelocity
 
     def render(self, mode='human'):
         time.sleep(self.sim_timestep * self.action_every_x_timestep)
@@ -72,25 +67,25 @@ class WalkerASim:
             time.sleep(self.sim_timestep * self.action_every_x_timestep)
         # Obtain local pose
         local_vel, local_rot_vel, acc = self.local_pose(0, self.sim_timestep * self.action_every_x_timestep)
-        for i in range(0, self.action_every_x_timestep):
-            # Obtain encoders pose
 
+        p.setJointMotorControlArray(self.robot, range(p.getNumJoints(self.robot)), p.POSITION_CONTROL,
+                                    targetPositions=[0.1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        for i in range(0, self.action_every_x_timestep):
             p.stepSimulation()
             self.time += self.sim_timestep
 
         jointPosition, jointVelocity = self.getJointStates(self.robot)
-
+        state = jointPosition
         # state_t_0 = np.concatenate((local_rot_vel, acc))
 
         #### Check for contact ####
         contacts = p.getContactPoints(bodyA=self.robot, linkIndexA=-1)
-        print(contacts)
         if contacts != ():
             contact = 1
         else:
             contact = 0
         position, orientation = p.getBasePositionAndOrientation(self.robot)
-        return self.state, contact, self.time, position, orientation, local_vel
+        return state, contact, self.time, position, orientation, local_vel
 
     def reset(self, x=0, y=0, z=0.05, q1=0, q2=0, q3=0, q4=1, gravity=-9.81,
               ML_R=21.5, ML_Kv=10.5, ML_Kvis=0.0005,
@@ -100,18 +95,19 @@ class WalkerASim:
         p.createCollisionShape(p.GEOM_PLANE)
         p.createMultiBody(0, 0)
         p.setGravity(0, 0, gravity)
-
-        self.robot = p.loadURDF('walker_a/urdf/walker_a.urdf', basePosition=[0, 0, 1],
+        self.time = 0
+        self.robot = p.loadURDF('walker_a/urdf/walker_a_0_5.urdf', basePosition=[0, 0, 1],
                             flags=p.URDF_USE_INERTIA_FROM_FILE & p.URDF_USE_SELF_COLLISION_EXCLUDE_PARENT)
 
 
         local_vel, local_rot_vel, acc = self.local_pose(0, self.sim_timestep * self.action_every_x_timestep)
-        state_t_0 = np.concatenate(([0, 0], [0, 0, 0], acc, [self.max_voltage]))
-        self.state_t_m_1 = state_t_0
-        self.state_t_m_2 = state_t_0
-        self.state_t_m_3 = state_t_0
-        self.state = np.concatenate((state_t_0, self.state_t_m_1, self.state_t_m_2, self.state_t_m_3))
+        jointPosition, jointVelocity = self.getJointStates(self.robot)
+        if self.include_joint_velocity:
+            state = np.concatenate((np.asarray(jointPosition), np.asarray(jointVelocity)))
+        else:
+            state = jointPosition
+
 
         ##### Environment section
 
-        return self.state
+        return jointPosition

@@ -1,457 +1,334 @@
-<?xml version="1.0" ?><robot name="physics">
-
-    <link name="baseLink">
-        <contact>
-          <lateral_friction value="100.0"/>
-          <inertia_scaling value="1.0"/>
-        </contact>
-        <inertial>
-            <origin rpy="0 0 0" xyz="0.000, 0, 0.000"/>
-            <mass value="20"/>
-            <inertia ixx="0.318181818181818" ixy="2.45428571428571" ixz="2.25506493506493" iyy="2.25506493506493" iyz="0.318181818181818" izz="2.45428571428571"/>
-
-        </inertial>
-        <visual>
-            <origin rpy="0 0 0" xyz="0 0 0.0"/>
-            <geometry>
-                <mesh filename="body.obj" scale="1 1 1"/>
-            </geometry>
-            <material name="white">
-                <color rgba="1 1 1 1"/>
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="body.obj" scale="1 1 1"/>
-            </geometry>
-        </collision>
-    </link>
-
-    <link name="leg_0_0">
-        <contact>
-          <lateral_friction value="100.0"/>
-          <inertia_scaling value="1.0"/>
-        </contact>
-        <inertial>
-            <origin rpy="0 0 0" xyz="0.05, 0, 0"/>
-            <mass value="1"/>
-            <inertia ixx="0.000155324675324675" ixy="0.00025974025974026" ixz="0.00051948051948052" iyy="0.00051948051948052" iyz="0.000155324675324675" izz="0.00025974025974026"/>
-        </inertial>
-        <visual>
-            <origin rpy="0 0 0" xyz="0 0 0.0"/>
-            <geometry>
-                <mesh filename="leg_X_0.obj" scale="1 1 1"/>
-            </geometry>
-            <material name="blue">
-                <color rgba="0 0 1 1"/>
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="leg_X_0.obj" scale="1 1 1"/>
-            </geometry>
-        </collision>
-    </link>
-
-    <joint name="joint_0_0" type="continuous">
-        <origin rpy="0 0 0" xyz="0.35, -0.3, 0"/>
-        <parent link="baseLink"/>
-        <child link="leg_0_0"/>
-        <axis xyz="1 0 0"/>
-        <limit effort="300" lower="-0.1" upper="0.1" velocity="10"/>
-    </joint>
-
-    <link name="leg_0_1">
-        <contact>
-          <lateral_friction value="100.0"/>
-          <inertia_scaling value="1.0"/>
-        </contact>
-        <inertial>
-            <origin rpy="0 0 0" xyz="0, 0, -0.21"/>
-            <mass value="2"/>
-            <inertia ixx="0.205194805194805" ixy="0.0161038961038961" ixz="0.204935064935065" iyy="0.204935064935065" iyz="0.205194805194805" izz="0.0161038961038961"/>
-        </inertial>
-        <visual>
-            <origin rpy="0 0 0" xyz="0 0 0.0"/>
-            <geometry>
-                <mesh filename="leg_X_1.obj" scale="1 1 1"/>
-            </geometry>
-            <material name="blue">
-                <color rgba="0 0 1 1"/>
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="leg_X_1.obj" scale="1 1 1"/>
-            </geometry>
-        </collision>
-    </link>
-
-    <joint name="joint_0_1" type="continuous">
-        <origin rpy="0 0 0" xyz="0.15, 0, 0"/>
-        <parent link="leg_0_0"/>
-        <child link="leg_0_1"/>
-        <axis xyz="0 1 0"/>
-        <limit effort="300" lower="-0.1" upper="0.1" velocity="10"/>
-    </joint>
-
-    <link name="leg_0_2">
-        <contact>
-          <lateral_friction value="100.0"/>
-          <inertia_scaling value="1.0"/>
-        </contact>
-        <inertial>
-            <origin rpy="0 0 0" xyz="0, 0, -0.21"/>
-            <mass value="2"/>
-            <inertia ixx="0.205194805194805" ixy="0.0161038961038961" ixz="0.204935064935065" iyy="0.204935064935065" iyz="0.205194805194805" izz="0.0161038961038961"/>
-        </inertial>
-        <visual>
-            <origin rpy="0 0 0" xyz="0 0 0.0"/>
-            <geometry>
-                <mesh filename="leg_X_1.obj" scale="1 1 1"/>
-            </geometry>
-            <material name="blue">
-                <color rgba="0 0 1 1"/>
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="leg_X_1.obj" scale="1 1 1"/>
-            </geometry>
-        </collision>
-    </link>
-
-    <joint name="joint_0_2" type="continuous">
-        <origin rpy="0 0 0" xyz="0, 0, -0.50"/>
-        <parent link="leg_0_1"/>
-        <child link="leg_0_2"/>
-        <axis xyz="0 1 0"/>
-        <limit effort="300" lower="-0.1" upper="0.1" velocity="10"/>
-    </joint>
-
-    ###
-
-    <link name="leg_1_0">
-        <contact>
-          <lateral_friction value="100.0"/>
-          <inertia_scaling value="1.0"/>
-        </contact>
-        <inertial>
-            <origin rpy="0 0 0" xyz="0.05, 0, 0"/>
-            <mass value="1"/>
-            <inertia ixx="0.000155324675324675" ixy="0.00025974025974026" ixz="0.00051948051948052" iyy="0.00051948051948052" iyz="0.000155324675324675" izz="0.00025974025974026"/>
-        </inertial>
-        <visual>
-            <origin rpy="0 0 0" xyz="0 0 0.0"/>
-            <geometry>
-                <mesh filename="leg_X_0.obj" scale="1 1 1"/>
-            </geometry>
-            <material name="red">
-                <color rgba="1 0 0 1"/>
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="leg_X_0.obj" scale="1 1 1"/>
-            </geometry>
-        </collision>
-    </link>
-
-    <joint name="joint_1_0" type="continuous">
-        <origin rpy="0 0 0" xyz="0.35, 0.3, 0"/>
-        <parent link="baseLink"/>
-        <child link="leg_1_0"/>
-        <axis xyz="1 0 0"/>
-        <limit effort="300" lower="-0.1" upper="0.1" velocity="10"/>
-    </joint>
-
-    <link name="leg_1_1">
-        <contact>
-          <lateral_friction value="100.0"/>
-          <inertia_scaling value="1.0"/>
-        </contact>
-        <inertial>
-            <origin rpy="0 0 0" xyz="0, 0, -0.21"/>
-            <mass value="2"/>
-            <inertia ixx="0.205194805194805" ixy="0.0161038961038961" ixz="0.204935064935065" iyy="0.204935064935065" iyz="0.205194805194805" izz="0.0161038961038961"/>
-        </inertial>
-        <visual>
-            <origin rpy="0 0 0" xyz="0 0 0.0"/>
-            <geometry>
-                <mesh filename="leg_X_1.obj" scale="1 1 1"/>
-            </geometry>
-            <material name="red">
-                <color rgba="1 0 0 1"/>
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="leg_X_1.obj" scale="1 1 1"/>
-            </geometry>
-        </collision>
-    </link>
-
-    <joint name="joint_1_1" type="continuous">
-        <origin rpy="0 0 0" xyz="0.15, 0, 0"/>
-        <parent link="leg_1_0"/>
-        <child link="leg_1_1"/>
-        <axis xyz="0 1 0"/>
-        <limit effort="300" lower="-0.1" upper="0.1" velocity="10"/>
-    </joint>
-
-    <link name="leg_1_2">
-        <contact>
-          <lateral_friction value="100.0"/>
-          <inertia_scaling value="1.0"/>
-        </contact>
-        <inertial>
-            <origin rpy="0 0 0" xyz="0, 0, -0.21"/>
-            <mass value="2"/>
-            <inertia ixx="0.205194805194805" ixy="0.0161038961038961" ixz="0.204935064935065" iyy="0.204935064935065" iyz="0.205194805194805" izz="0.0161038961038961"/>
-        </inertial>
-        <visual>
-            <origin rpy="0 0 0" xyz="0 0 0.0"/>
-            <geometry>
-                <mesh filename="leg_X_1.obj" scale="1 1 1"/>
-            </geometry>
-            <material name="red">
-                <color rgba="1 0 0 1"/>
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="leg_X_1.obj" scale="1 1 1"/>
-            </geometry>
-        </collision>
-    </link>
-
-    <joint name="joint_1_2" type="continuous">
-        <origin rpy="0 0 0" xyz="0, 0, -0.50"/>
-        <parent link="leg_1_1"/>
-        <child link="leg_1_2"/>
-        <axis xyz="0 1 0"/>
-        <limit effort="300" lower="-0.1" upper="0.1" velocity="10"/>
-    </joint>
-
-    ###
-
-    <link name="leg_2_0">
-        <contact>
-          <lateral_friction value="100.0"/>
-          <inertia_scaling value="1.0"/>
-        </contact>
-        <inertial>
-            <origin rpy="0 0 0" xyz="0.05, 0, 0"/>
-            <mass value="1"/>
-            <inertia ixx="0.000155324675324675" ixy="0.00025974025974026" ixz="0.00051948051948052" iyy="0.00051948051948052" iyz="0.000155324675324675" izz="0.00025974025974026"/>
-        </inertial>
-        <visual>
-            <origin rpy="0 0 0" xyz="0 0 0.0"/>
-            <geometry>
-                <mesh filename="leg_X_0.obj" scale="1 1 1"/>
-            </geometry>
-            <material name="blue">
-                <color rgba="0 0 1 1"/>
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="leg_X_0.obj" scale="1 1 1"/>
-            </geometry>
-        </collision>
-    </link>
-
-    <joint name="joint_2_0" type="continuous">
-        <origin rpy="0 0 3.14159" xyz="-0.35, 0.3, 0"/>
-        <parent link="baseLink"/>
-        <child link="leg_2_0"/>
-        <axis xyz="1 0 0"/>
-        <limit effort="300" lower="-0.1" upper="0.1" velocity="10"/>
-    </joint>
-
-    <link name="leg_2_1">
-        <contact>
-          <lateral_friction value="100.0"/>
-          <inertia_scaling value="1.0"/>
-        </contact>
-        <inertial>
-            <origin rpy="0 0 0" xyz="0, 0, -0.21"/>
-            <mass value="2"/>
-            <inertia ixx="0.205194805194805" ixy="0.0161038961038961" ixz="0.204935064935065" iyy="0.204935064935065" iyz="0.205194805194805" izz="0.0161038961038961"/>
-        </inertial>
-        <visual>
-            <origin rpy="0 0 0" xyz="0 0 0.0"/>
-            <geometry>
-                <mesh filename="leg_X_1.obj" scale="1 1 1"/>
-            </geometry>
-            <material name="blue">
-                <color rgba="0 0 1 1"/>
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="leg_X_1.obj" scale="1 1 1"/>
-            </geometry>
-        </collision>
-    </link>
-
-    <joint name="joint_2_1" type="continuous">
-        <origin rpy="0 0 0" xyz="0.15, 0, 0"/>
-        <parent link="leg_2_0"/>
-        <child link="leg_2_1"/>
-        <axis xyz="0 1 0"/>
-        <limit effort="300" lower="-0.1" upper="0.1" velocity="10"/>
-    </joint>
-
-    <link name="leg_2_2">
-        <contact>
-          <lateral_friction value="100.0"/>
-          <inertia_scaling value="1.0"/>
-        </contact>
-        <inertial>
-            <origin rpy="0 0 0" xyz="0, 0, -0.21"/>
-            <mass value="2"/>
-            <inertia ixx="0.205194805194805" ixy="0.0161038961038961" ixz="0.204935064935065" iyy="0.204935064935065" iyz="0.205194805194805" izz="0.0161038961038961"/>
-        </inertial>
-        <visual>
-            <origin rpy="0 0 0" xyz="0 0 0.0"/>
-            <geometry>
-                <mesh filename="leg_X_1.obj" scale="1 1 1"/>
-            </geometry>
-            <material name="blue">
-                <color rgba="0 0 1 1"/>
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="leg_X_1.obj" scale="1 1 1"/>
-            </geometry>
-        </collision>
-    </link>
-
-    <joint name="joint_2_2" type="continuous">
-        <origin rpy="0 0 0" xyz="0, 0, -0.50"/>
-        <parent link="leg_2_1"/>
-        <child link="leg_2_2"/>
-        <axis xyz="0 1 0"/>
-        <limit effort="300" lower="-0.1" upper="0.1" velocity="10"/>
-    </joint>
-
-    ###
-
-    <link name="leg_3_0">
-        <contact>
-          <lateral_friction value="100.0"/>
-          <inertia_scaling value="1.0"/>
-        </contact>
-        <inertial>
-            <origin rpy="0 0 0" xyz="0.05, 0, 0"/>
-            <mass value="1"/>
-            <inertia ixx="0.000155324675324675" ixy="0.00025974025974026" ixz="0.00051948051948052" iyy="0.00051948051948052" iyz="0.000155324675324675" izz="0.00025974025974026"/>
-        </inertial>
-        <visual>
-            <origin rpy="0 0 0" xyz="0 0 0.0"/>
-            <geometry>
-                <mesh filename="leg_X_0.obj" scale="1 1 1"/>
-            </geometry>
-            <material name="red">
-                <color rgba="1 0 0 1"/>
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="leg_X_0.obj" scale="1 1 1"/>
-            </geometry>
-        </collision>
-    </link>
-
-    <joint name="joint_3_0" type="continuous">
-        <origin rpy="0 0 3.14159" xyz="-0.35, -0.3, 0"/>
-        <parent link="baseLink"/>
-        <child link="leg_3_0"/>
-        <axis xyz="1 0 0"/>
-        <limit effort="300" lower="-0.1" upper="0.1" velocity="10"/>
-    </joint>
-
-    <link name="leg_3_1">
-        <contact>
-          <lateral_friction value="100.0"/>
-          <inertia_scaling value="1.0"/>
-        </contact>
-        <inertial>
-            <origin rpy="0 0 0" xyz="0, 0, -0.21"/>
-            <mass value="2"/>
-            <inertia ixx="0.205194805194805" ixy="0.0161038961038961" ixz="0.204935064935065" iyy="0.204935064935065" iyz="0.205194805194805" izz="0.0161038961038961"/>
-        </inertial>
-        <visual>
-            <origin rpy="0 0 0" xyz="0 0 0.0"/>
-            <geometry>
-                <mesh filename="leg_X_1.obj" scale="1 1 1"/>
-            </geometry>
-            <material name="red">
-                <color rgba="1 0 0 1"/>
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="leg_X_1.obj" scale="1 1 1"/>
-            </geometry>
-        </collision>
-    </link>
-
-    <joint name="joint_3_1" type="continuous">
-        <origin rpy="0 0 0" xyz="0.15, 0, 0"/>
-        <parent link="leg_3_0"/>
-        <child link="leg_3_1"/>
-        <axis xyz="0 1 0"/>
-        <limit effort="300" lower="-0.1" upper="0.1" velocity="10"/>
-    </joint>
-
-    <link name="leg_3_2">
-        <contact>
-          <lateral_friction value="100.0"/>
-          <inertia_scaling value="1.0"/>
-        </contact>
-        <inertial>
-            <origin rpy="0 0 0" xyz="0, 0, -0.21"/>
-            <mass value="2"/>
-            <inertia ixx="0.205194805194805" ixy="0.0161038961038961" ixz="0.204935064935065" iyy="0.204935064935065" iyz="0.205194805194805" izz="0.0161038961038961"/>
-        </inertial>
-        <visual>
-            <origin rpy="0 0 0" xyz="0 0 0.0"/>
-            <geometry>
-                <mesh filename="leg_X_1.obj" scale="1 1 1"/>
-            </geometry>
-            <material name="red">
-                <color rgba="1 0 0 1"/>
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="leg_X_1.obj" scale="1 1 1"/>
-            </geometry>
-        </collision>
-    </link>
-
-    <joint name="joint_3_2" type="continuous">
-        <origin rpy="0 0 0" xyz="0, 0, -0.50"/>
-        <parent link="leg_3_1"/>
-        <child link="leg_3_2"/>
-        <axis xyz="0 1 0"/>
-        <limit effort="300" lower="-0.1" upper="0.1" velocity="10"/>
-    </joint>
-
+<?xml version="1.0"?>
+<robot  name="walker_a" >
+ <link  name="base_link" >
+  <contact >
+   <lateral_friction  value="100" />
+  </contact>
+  <inertial >
+   <inertia  izz="4.908571429"  iyy="4.51012987"  ixz="4.51012987"  iyz="0.6363636364"  ixx="0.6363636364"  ixy="4.908571429" />
+   <mass  value="40" />
+  </inertial>
+  <visual >
+   <geometry >
+    <mesh  filename="body.obj"  scale="1 1 1" />
+   </geometry>
+  </visual>
+  <collision >
+   <geometry >
+    <mesh  filename="body.obj"  scale="1 1 1" />
+   </geometry>
+  </collision>
+ </link>
+ <link  name="link_0_0" >
+  <contact >
+   <lateral_friction  value="100" />
+  </contact>
+  <inertial >
+   <inertia  izz="0.003766478343"  iyy="0.007532956685"  ixz="0.007532956685"  iyz="0.00225"  ixx="0.000311"  ixy="0.003766478343" />
+   <mass  value="2" />
+   <origin />
+  </inertial>
+  <visual >
+   <geometry >
+    <mesh  filename="leg_X_0.obj"  scale="1 1 1" />
+   </geometry>
+  </visual>
+  <collision >
+   <geometry >
+    <mesh  filename="leg_X_0.obj"  scale="1 1 1" />
+   </geometry>
+  </collision>
+ </link>
+ <link  name="link_0_1" >
+  <contact >
+   <lateral_friction  value="100" />
+  </contact>
+  <inertial >
+   <inertia  izz="0.003766478343"  iyy="0.007532956685"  ixz="0.007532956685"  iyz="0.00225"  ixx="0.000311"  ixy="0.003766478343" />
+   <mass  value="2" />
+   <origin />
+  </inertial>
+  <visual >
+   <geometry >
+    <mesh  filename="leg_X_1.obj"  scale="1 1 1" />
+   </geometry>
+  </visual>
+  <collision >
+   <geometry >
+    <mesh  filename="leg_X_1.obj"  scale="1 1 1" />
+   </geometry>
+  </collision>
+ </link>
+ <link  name="link_0_2" >
+  <contact >
+   <lateral_friction  value="100" />
+  </contact>
+  <inertial >
+   <inertia  izz="0.003766478343"  iyy="0.007532956685"  ixz="0.007532956685"  iyz="0.00225"  ixx="0.000311"  ixy="0.003766478343" />
+   <mass  value="2" />
+   <origin />
+  </inertial>
+  <visual >
+   <geometry >
+    <mesh  filename="leg_X_1.obj"  scale="1 1 1" />
+   </geometry>
+  </visual>
+  <collision >
+   <geometry >
+    <mesh  filename="leg_X_1.obj"  scale="1 1 1" />
+   </geometry>
+  </collision>
+ </link>
+ <link  name="link_1_0" >
+  <contact >
+   <lateral_friction  value="100" />
+  </contact>
+  <inertial >
+   <inertia  izz="0.003766478343"  iyy="0.007532956685"  ixz="0.007532956685"  iyz="0.00225"  ixx="0.000311"  ixy="0.003766478343" />
+   <mass  value="2" />
+   <origin />
+  </inertial>
+  <visual >
+   <geometry >
+    <mesh  filename="leg_X_0.obj"  scale="1 1 1" />
+   </geometry>
+  </visual>
+  <collision >
+   <geometry >
+    <mesh  filename="leg_X_0.obj"  scale="1 1 1" />
+   </geometry>
+  </collision>
+ </link>
+ <link  name="link_1_1" >
+  <contact >
+   <lateral_friction  value="100" />
+  </contact>
+  <inertial >
+   <inertia  izz="0.003766478343"  iyy="0.007532956685"  ixz="0.007532956685"  iyz="0.00225"  ixx="0.000311"  ixy="0.003766478343" />
+   <mass  value="2" />
+   <origin />
+  </inertial>
+  <visual >
+   <geometry >
+    <mesh  filename="leg_X_1.obj"  scale="1 1 1" />
+   </geometry>
+  </visual>
+  <collision >
+   <geometry >
+    <mesh  filename="leg_X_1.obj"  scale="1 1 1" />
+   </geometry>
+  </collision>
+ </link>
+ <link  name="link_1_2" >
+  <contact >
+   <lateral_friction  value="100" />
+  </contact>
+  <inertial >
+   <inertia  izz="0.003766478343"  iyy="0.007532956685"  ixz="0.007532956685"  iyz="0.00225"  ixx="0.000311"  ixy="0.003766478343" />
+   <mass  value="2" />
+   <origin />
+  </inertial>
+  <visual >
+   <geometry >
+    <mesh  filename="leg_X_1.obj"  scale="1 1 1" />
+   </geometry>
+  </visual>
+  <collision >
+   <geometry >
+    <mesh  filename="leg_X_1.obj"  scale="1 1 1" />
+   </geometry>
+  </collision>
+ </link>
+ <link  name="link_2_0" >
+  <contact >
+   <lateral_friction  value="100" />
+  </contact>
+  <inertial >
+   <inertia  izz="0.003766478343"  iyy="0.007532956685"  ixz="0.007532956685"  iyz="0.00225"  ixx="0.000311"  ixy="0.003766478343" />
+   <mass  value="2" />
+   <origin />
+  </inertial>
+  <visual >
+   <geometry >
+    <mesh  filename="leg_X_0.obj"  scale="1 1 1" />
+   </geometry>
+  </visual>
+  <collision >
+   <geometry >
+    <mesh  filename="leg_X_0.obj"  scale="1 1 1" />
+   </geometry>
+  </collision>
+ </link>
+ <link  name="link_2_1" >
+  <contact >
+   <lateral_friction  value="100" />
+  </contact>
+  <inertial >
+   <inertia  izz="0.003766478343"  iyy="0.007532956685"  ixz="0.007532956685"  iyz="0.00225"  ixx="0.000311"  ixy="0.003766478343" />
+   <mass  value="2" />
+   <origin />
+  </inertial>
+  <visual >
+   <geometry >
+    <mesh  filename="leg_X_1.obj"  scale="1 1 1" />
+   </geometry>
+  </visual>
+  <collision >
+   <geometry >
+    <mesh  filename="leg_X_1.obj"  scale="1 1 1" />
+   </geometry>
+  </collision>
+ </link>
+ <link  name="link_2_2" >
+  <contact >
+   <lateral_friction  value="100" />
+  </contact>
+  <inertial >
+   <inertia  izz="0.003766478343"  iyy="0.007532956685"  ixz="0.007532956685"  iyz="0.00225"  ixx="0.000311"  ixy="0.003766478343" />
+   <mass  value="2" />
+   <origin />
+  </inertial>
+  <visual >
+   <geometry >
+    <mesh  filename="leg_X_1.obj"  scale="1 1 1" />
+   </geometry>
+  </visual>
+  <collision >
+   <geometry >
+    <mesh  filename="leg_X_1.obj"  scale="1 1 1" />
+   </geometry>
+  </collision>
+ </link>
+ <link  name="link_3_0" >
+  <contact >
+   <lateral_friction  value="100" />
+  </contact>
+  <inertial >
+   <inertia  izz="0.003766478343"  iyy="0.007532956685"  ixz="0.007532956685"  iyz="0.00225"  ixx="0.000311"  ixy="0.003766478343" />
+   <mass  value="2" />
+   <origin />
+  </inertial>
+  <visual >
+   <geometry >
+    <mesh  filename="leg_X_0.obj"  scale="1 1 1" />
+   </geometry>
+  </visual>
+  <collision >
+   <geometry >
+    <mesh  filename="leg_X_0.obj"  scale="1 1 1" />
+   </geometry>
+  </collision>
+ </link>
+ <link  name="link_3_1" >
+  <contact >
+   <lateral_friction  value="100" />
+  </contact>
+  <inertial >
+   <inertia  izz="0.003766478343"  iyy="0.007532956685"  ixz="0.007532956685"  iyz="0.00225"  ixx="0.000311"  ixy="0.003766478343" />
+   <mass  value="2" />
+   <origin />
+  </inertial>
+  <visual >
+   <geometry >
+    <mesh  filename="leg_X_1.obj"  scale="1 1 1" />
+   </geometry>
+  </visual>
+  <collision >
+   <geometry >
+    <mesh  filename="leg_X_1.obj"  scale="1 1 1" />
+   </geometry>
+  </collision>
+ </link>
+ <link  name="link_3_2" >
+  <contact >
+   <lateral_friction  value="100" />
+  </contact>
+  <inertial >
+   <inertia  izz="0.003766478343"  iyy="0.007532956685"  ixz="0.007532956685"  iyz="0.00225"  ixx="0.000311"  ixy="0.003766478343" />
+   <mass  value="2" />
+   <origin />
+  </inertial>
+  <visual >
+   <geometry >
+    <mesh  filename="leg_X_1.obj"  scale="1 1 1" />
+   </geometry>
+  </visual>
+  <collision >
+   <geometry >
+    <mesh  filename="leg_X_1.obj"  scale="1 1 1" />
+   </geometry>
+  </collision>
+ </link>
+ <joint  name="joint_0_0"  type="continuous" >
+  <parent  link="base_link" />
+  <child  link="link_0_0" />
+  <origin  rpy="0, 0, 0"  xyz="0.35, -0.3, 0" />
+  <axis  xyz="1, 0, 0" />
+ </joint>
+ <joint  name="joint_0_1"  type="continuous" >
+  <parent  link="link_0_0" />
+  <child  link="link_0_1" />
+  <origin  xyz="0.15, 0, 0" />
+  <axis  xyz="0, 1, 0" />
+ </joint>
+ <joint  name="joint_0_2"  type="continuous" >
+  <parent  link="link_0_1" />
+  <child  link="link_0_2" />
+  <origin  xyz="0, 0, -0.5" />
+  <axis  xyz="0, 1, 0" />
+ </joint>
+ <joint  name="joint_1_0"  type="continuous" >
+  <parent  link="base_link" />
+  <child  link="link_1_0" />
+  <origin  rpy="0, 0, 0"  xyz="0.35, 0.3, 0" />
+  <axis  xyz="1, 0, 0" />
+ </joint>
+ <joint  name="joint_1_1"  type="continuous" >
+  <parent  link="link_1_0" />
+  <child  link="link_1_1" />
+  <origin  xyz="0.15, 0, 0" />
+  <axis  xyz="0, 1, 0" />
+ </joint>
+ <joint  name="joint_1_2"  type="continuous" >
+  <parent  link="link_1_1" />
+  <child  link="link_1_2" />
+  <origin  xyz="0, 0, -0.5" />
+  <axis  xyz="0, 1, 0" />
+ </joint>
+ <joint  name="joint_2_0"  type="continuous" >
+  <parent  link="base_link" />
+  <child  link="link_2_0" />
+  <origin  rpy="0, 0, 3.14159"  xyz="-0.35, 0.3, 0" />
+  <axis  xyz="1, 0, 0" />
+ </joint>
+ <joint  name="joint_2_1"  type="continuous" >
+  <parent  link="link_2_0" />
+  <child  link="link_2_1" />
+  <origin  xyz="0.15, 0, 0" />
+  <axis  xyz="0, 1, 0" />
+ </joint>
+ <joint  name="joint_2_2"  type="continuous" >
+  <parent  link="link_2_1" />
+  <child  link="link_2_2" />
+  <origin  xyz="0, 0, -0.5" />
+  <axis  xyz="0, 1, 0" />
+ </joint>
+ <joint  name="joint_3_0"  type="continuous" >
+  <parent  link="base_link" />
+  <child  link="link_3_0" />
+  <origin  rpy="0, 0, 3.14159"  xyz="-0.35, -0.3, 0" />
+  <axis  xyz="1, 0, 0" />
+ </joint>
+ <joint  name="joint_3_1"  type="continuous" >
+  <parent  link="link_3_0" />
+  <child  link="link_3_1" />
+  <origin  xyz="0.15, 0, 0" />
+  <axis  xyz="0, 1, 0" />
+ </joint>
+ <joint  name="joint_3_2"  type="continuous" >
+  <parent  link="link_3_1" />
+  <child  link="link_3_2" />
+  <origin  xyz="0, 0, -0.5" />
+  <axis  xyz="0, 1, 0" />
+ </joint>
 </robot>
