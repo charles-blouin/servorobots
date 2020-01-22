@@ -2,6 +2,7 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/odio_urdf" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/rl-baselines-zoo" vcs="Git" />
   </component>
 </project>

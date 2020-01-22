@@ -61,7 +61,7 @@ if __name__ == '__main__':
             # tensorboard_log=log_dir
             model = PPO2("MlpPolicy", env, policy_kwargs=policy_kwargs, verbose=1, nminibatches=32,
                          n_steps=2048, lam=0.95, gamma=0.99, noptepochs=10,
-                         ent_coef=0.001, cliprange=0.2)
+                         ent_coef=0.001, cliprange=0.2, tensorboard_log=log_dir)
         else:
             print("Loading model: " + str(args.load_id))
             model = PPO2.load(log_dir + str(args.load_id) + ".zip", env=env)

@@ -10,6 +10,7 @@ from servorobots.tools.quaternion import qt
 
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 
+
 class WalkerASim:
     def __init__(self, renders=False, sim_timestep=0.0020, action_every_x_timestep=5):
         self._renders = renders
@@ -26,13 +27,16 @@ class WalkerASim:
         self.max_voltage = 7.2
         self.r_battery = 0.4
 
-
-        self.observation_size = 36
+        self.number_of_frame_in_state = 1
+        self.include_gyro = False
+        self.include_joint_velocity = True
+        self.observation_size = 3*self.include_gyro + self.number_of_frame_in_state * 12 + \
+                                self.number_of_frame_in_state*self.include_joint_velocity * 12
         high_obs = np.ones(self.observation_size)
         self.observation_space = spaces.Box(high_obs * -1, high_obs * 1)
 
-        self.action_size = 8
-        act_high = np.asarray([1, 1, 1, 1, 1, 1, 1, 1])
+        self.action_size = 12
+        act_high = np.asarray([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
         self.action_space = spaces.Box(-act_high, act_high)
 
     def local_pose(self, linkID, timestep):
@@ -50,6 +54,15 @@ class WalkerASim:
 
         return local_vel, local_rot_vel, acc
 
+    def getJointStates(self, robot):
+        joint_states = p.getJointStates(robot, range(p.getNumJoints(robot)))
+        joint_positions = [state[0] for state in joint_states]
+        joint_velocities = [state[1] for state in joint_states]
+        return joint_positions, joint_velocities
+
+    def get_state_vector(self, jointPosition, jointVelocity):
+        jointPosition, jointVelocity
+
     def render(self, mode='human'):
         time.sleep(self.sim_timestep * self.action_every_x_timestep)
 
@@ -64,17 +77,14 @@ class WalkerASim:
 
             p.stepSimulation()
             self.time += self.sim_timestep
-        # 0,        1,         2,   3,     4
-        # Vel_left, vel_right, yaw, pitch, roll,
-        state_t_0 = np.concatenate((local_rot_vel, acc))
 
-        self.state = np.concatenate((state_t_0, self.state_t_m_1, self.state_t_m_2, self.state_t_m_3))
-        self.state_t_m_3 = self.state_t_m_2
-        self.state_t_m_2 = self.state_t_m_1
-        self.state_t_m_1 = state_t_0
+        jointPosition, jointVelocity = self.getJointStates(self.robot)
+
+        # state_t_0 = np.concatenate((local_rot_vel, acc))
 
         #### Check for contact ####
         contacts = p.getContactPoints(bodyA=self.robot, linkIndexA=-1)
+        print(contacts)
         if contacts != ():
             contact = 1
         else:
@@ -91,7 +101,8 @@ class WalkerASim:
         p.createMultiBody(0, 0)
         p.setGravity(0, 0, gravity)
 
-        self.robot = geo.create_robot()
+        self.robot = p.loadURDF('walker_a/urdf/walker_a.urdf', basePosition=[0, 0, 1],
+                            flags=p.URDF_USE_INERTIA_FROM_FILE & p.URDF_USE_SELF_COLLISION_EXCLUDE_PARENT)
 
 
         local_vel, local_rot_vel, acc = self.local_pose(0, self.sim_timestep * self.action_every_x_timestep)
