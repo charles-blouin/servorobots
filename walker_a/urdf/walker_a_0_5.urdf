@@ -5,17 +5,17 @@
    <lateral_friction  value="100" />
   </contact>
   <inertial >
-   <inertia  izz="4.908571429"  iyy="4.51012987"  ixz="4.51012987"  iyz="0.6363636364"  ixx="0.6363636364"  ixy="4.908571429" />
+   <inertia  izz="4.908571429"  ixy="4.908571429"  iyy="4.51012987"  ixx="0.6363636364"  ixz="4.51012987"  iyz="0.6363636364" />
    <mass  value="40" />
   </inertial>
   <visual >
    <geometry >
-    <mesh  filename="body.obj"  scale="1 1 1" />
+    <mesh  scale="1 1 1"  filename="body.obj" />
    </geometry>
   </visual>
   <collision >
    <geometry >
-    <mesh  filename="body.obj"  scale="1 1 1" />
+    <mesh  scale="1 1 1"  filename="body.obj" />
    </geometry>
   </collision>
  </link>
@@ -24,18 +24,18 @@
    <lateral_friction  value="100" />
   </contact>
   <inertial >
-   <inertia  izz="0.003766478343"  iyy="0.007532956685"  ixz="0.007532956685"  iyz="0.00225"  ixx="0.000311"  ixy="0.003766478343" />
+   <inertia  izz="0.003766478343"  ixy="0.003766478343"  iyy="0.007532956685"  ixx="0.000311"  ixz="0.007532956685"  iyz="0.00225" />
    <mass  value="2" />
    <origin />
   </inertial>
   <visual >
    <geometry >
-    <mesh  filename="leg_X_0.obj"  scale="1 1 1" />
+    <mesh  scale="1 1 1"  filename="leg_X_0.obj" />
    </geometry>
   </visual>
   <collision >
    <geometry >
-    <mesh  filename="leg_X_0.obj"  scale="1 1 1" />
+    <mesh  scale="1 1 1"  filename="leg_X_0.obj" />
    </geometry>
   </collision>
  </link>
@@ -44,18 +44,18 @@
    <lateral_friction  value="100" />
   </contact>
   <inertial >
-   <inertia  izz="0.003766478343"  iyy="0.007532956685"  ixz="0.007532956685"  iyz="0.00225"  ixx="0.000311"  ixy="0.003766478343" />
+   <inertia  izz="0.003766478343"  ixy="0.003766478343"  iyy="0.007532956685"  ixx="0.000311"  ixz="0.007532956685"  iyz="0.00225" />
    <mass  value="2" />
    <origin />
   </inertial>
   <visual >
    <geometry >
-    <mesh  filename="leg_X_1.obj"  scale="1 1 1" />
+    <mesh  scale="1 1 1"  filename="leg_X_1.obj" />
    </geometry>
   </visual>
   <collision >
    <geometry >
-    <mesh  filename="leg_X_1.obj"  scale="1 1 1" />
+    <mesh  scale="1 1 1"  filename="leg_X_1.obj" />
    </geometry>
   </collision>
  </link>
@@ -64,18 +64,18 @@
    <lateral_friction  value="100" />
   </contact>
   <inertial >
-   <inertia  izz="0.003766478343"  iyy="0.007532956685"  ixz="0.007532956685"  iyz="0.00225"  ixx="0.000311"  ixy="0.003766478343" />
+   <inertia  izz="0.003766478343"  ixy="0.003766478343"  iyy="0.007532956685"  ixx="0.000311"  ixz="0.007532956685"  iyz="0.00225" />
    <mass  value="2" />
    <origin />
   </inertial>
   <visual >
    <geometry >
-    <mesh  filename="leg_X_1.obj"  scale="1 1 1" />
+    <mesh  scale="1 1 1"  filename="leg_X_1.obj" />
    </geometry>
   </visual>
   <collision >
    <geometry >
-    <mesh  filename="leg_X_1.obj"  scale="1 1 1" />
+    <mesh  scale="1 1 1"  filename="leg_X_1.obj" />
    </geometry>
   </collision>
  </link>
@@ -84,18 +84,18 @@
    <lateral_friction  value="100" />
   </contact>
   <inertial >
-   <inertia  izz="0.003766478343"  iyy="0.007532956685"  ixz="0.007532956685"  iyz="0.00225"  ixx="0.000311"  ixy="0.003766478343" />
+   <inertia  izz="0.003766478343"  ixy="0.003766478343"  iyy="0.007532956685"  ixx="0.000311"  ixz="0.007532956685"  iyz="0.00225" />
    <mass  value="2" />
    <origin />
   </inertial>
   <visual >
    <geometry >
-    <mesh  filename="leg_X_0.obj"  scale="1 1 1" />
+    <mesh  scale="1 1 1"  filename="leg_X_0.obj" />
    </geometry>
   </visual>
   <collision >
    <geometry >
-    <mesh  filename="leg_X_0.obj"  scale="1 1 1" />
+    <mesh  scale="1 1 1"  filename="leg_X_0.obj" />
    </geometry>
   </collision>
  </link>
@@ -104,18 +104,18 @@
    <lateral_friction  value="100" />
   </contact>
   <inertial >
-   <inertia  izz="0.003766478343"  iyy="0.007532956685"  ixz="0.007532956685"  iyz="0.00225"  ixx="0.000311"  ixy="0.003766478343" />
+   <inertia  izz="0.003766478343"  ixy="0.003766478343"  iyy="0.007532956685"  ixx="0.000311"  ixz="0.007532956685"  iyz="0.00225" />
    <mass  value="2" />
    <origin />
   </inertial>
   <visual >
    <geometry >
-    <mesh  filename="leg_X_1.obj"  scale="1 1 1" />
+    <mesh  scale="1 1 1"  filename="leg_X_1.obj" />
    </geometry>
   </visual>
   <collision >
    <geometry >
-    <mesh  filename="leg_X_1.obj"  scale="1 1 1" />
+    <mesh  scale="1 1 1"  filename="leg_X_1.obj" />
    </geometry>
   </collision>
  </link>
@@ -124,18 +124,18 @@
    <lateral_friction  value="100" />
   </contact>
   <inertial >
-   <inertia  izz="0.003766478343"  iyy="0.007532956685"  ixz="0.007532956685"  iyz="0.00225"  ixx="0.000311"  ixy="0.003766478343" />
+   <inertia  izz="0.003766478343"  ixy="0.003766478343"  iyy="0.007532956685"  ixx="0.000311"  ixz="0.007532956685"  iyz="0.00225" />
    <mass  value="2" />
    <origin />
   </inertial>
   <visual >
    <geometry >
-    <mesh  filename="leg_X_1.obj"  scale="1 1 1" />
+    <mesh  scale="1 1 1"  filename="leg_X_1.obj" />
    </geometry>
   </visual>
   <collision >
    <geometry >
-    <mesh  filename="leg_X_1.obj"  scale="1 1 1" />
+    <mesh  scale="1 1 1"  filename="leg_X_1.obj" />
    </geometry>
   </collision>
  </link>
@@ -144,18 +144,18 @@
    <lateral_friction  value="100" />
   </contact>
   <inertial >
-   <inertia  izz="0.003766478343"  iyy="0.007532956685"  ixz="0.007532956685"  iyz="0.00225"  ixx="0.000311"  ixy="0.003766478343" />
+   <inertia  izz="0.003766478343"  ixy="0.003766478343"  iyy="0.007532956685"  ixx="0.000311"  ixz="0.007532956685"  iyz="0.00225" />
    <mass  value="2" />
    <origin />
   </inertial>
   <visual >
    <geometry >
-    <mesh  filename="leg_X_0.obj"  scale="1 1 1" />
+    <mesh  scale="1 1 1"  filename="leg_X_0.obj" />
    </geometry>
   </visual>
   <collision >
    <geometry >
-    <mesh  filename="leg_X_0.obj"  scale="1 1 1" />
+    <mesh  scale="1 1 1"  filename="leg_X_0.obj" />
    </geometry>
   </collision>
  </link>
@@ -164,18 +164,18 @@
    <lateral_friction  value="100" />
   </contact>
   <inertial >
-   <inertia  izz="0.003766478343"  iyy="0.007532956685"  ixz="0.007532956685"  iyz="0.00225"  ixx="0.000311"  ixy="0.003766478343" />
+   <inertia  izz="0.003766478343"  ixy="0.003766478343"  iyy="0.007532956685"  ixx="0.000311"  ixz="0.007532956685"  iyz="0.00225" />
    <mass  value="2" />
    <origin />
   </inertial>
   <visual >
    <geometry >
-    <mesh  filename="leg_X_1.obj"  scale="1 1 1" />
+    <mesh  scale="1 1 1"  filename="leg_X_1.obj" />
    </geometry>
   </visual>
   <collision >
    <geometry >
-    <mesh  filename="leg_X_1.obj"  scale="1 1 1" />
+    <mesh  scale="1 1 1"  filename="leg_X_1.obj" />
    </geometry>
   </collision>
  </link>
@@ -184,18 +184,18 @@
    <lateral_friction  value="100" />
   </contact>
   <inertial >
-   <inertia  izz="0.003766478343"  iyy="0.007532956685"  ixz="0.007532956685"  iyz="0.00225"  ixx="0.000311"  ixy="0.003766478343" />
+   <inertia  izz="0.003766478343"  ixy="0.003766478343"  iyy="0.007532956685"  ixx="0.000311"  ixz="0.007532956685"  iyz="0.00225" />
    <mass  value="2" />
    <origin />
   </inertial>
   <visual >
    <geometry >
-    <mesh  filename="leg_X_1.obj"  scale="1 1 1" />
+    <mesh  scale="1 1 1"  filename="leg_X_1.obj" />
    </geometry>
   </visual>
   <collision >
    <geometry >
-    <mesh  filename="leg_X_1.obj"  scale="1 1 1" />
+    <mesh  scale="1 1 1"  filename="leg_X_1.obj" />
    </geometry>
   </collision>
  </link>
@@ -204,18 +204,18 @@
    <lateral_friction  value="100" />
   </contact>
   <inertial >
-   <inertia  izz="0.003766478343"  iyy="0.007532956685"  ixz="0.007532956685"  iyz="0.00225"  ixx="0.000311"  ixy="0.003766478343" />
+   <inertia  izz="0.003766478343"  ixy="0.003766478343"  iyy="0.007532956685"  ixx="0.000311"  ixz="0.007532956685"  iyz="0.00225" />
    <mass  value="2" />
    <origin />
   </inertial>
   <visual >
    <geometry >
-    <mesh  filename="leg_X_0.obj"  scale="1 1 1" />
+    <mesh  scale="1 1 1"  filename="leg_X_0.obj" />
    </geometry>
   </visual>
   <collision >
    <geometry >
-    <mesh  filename="leg_X_0.obj"  scale="1 1 1" />
+    <mesh  scale="1 1 1"  filename="leg_X_0.obj" />
    </geometry>
   </collision>
  </link>
@@ -224,18 +224,18 @@
    <lateral_friction  value="100" />
   </contact>
   <inertial >
-   <inertia  izz="0.003766478343"  iyy="0.007532956685"  ixz="0.007532956685"  iyz="0.00225"  ixx="0.000311"  ixy="0.003766478343" />
+   <inertia  izz="0.003766478343"  ixy="0.003766478343"  iyy="0.007532956685"  ixx="0.000311"  ixz="0.007532956685"  iyz="0.00225" />
    <mass  value="2" />
    <origin />
   </inertial>
   <visual >
    <geometry >
-    <mesh  filename="leg_X_1.obj"  scale="1 1 1" />
+    <mesh  scale="1 1 1"  filename="leg_X_1.obj" />
    </geometry>
   </visual>
   <collision >
    <geometry >
-    <mesh  filename="leg_X_1.obj"  scale="1 1 1" />
+    <mesh  scale="1 1 1"  filename="leg_X_1.obj" />
    </geometry>
   </collision>
  </link>
@@ -244,25 +244,25 @@
    <lateral_friction  value="100" />
   </contact>
   <inertial >
-   <inertia  izz="0.003766478343"  iyy="0.007532956685"  ixz="0.007532956685"  iyz="0.00225"  ixx="0.000311"  ixy="0.003766478343" />
+   <inertia  izz="0.003766478343"  ixy="0.003766478343"  iyy="0.007532956685"  ixx="0.000311"  ixz="0.007532956685"  iyz="0.00225" />
    <mass  value="2" />
    <origin />
   </inertial>
   <visual >
    <geometry >
-    <mesh  filename="leg_X_1.obj"  scale="1 1 1" />
+    <mesh  scale="1 1 1"  filename="leg_X_1.obj" />
    </geometry>
   </visual>
   <collision >
    <geometry >
-    <mesh  filename="leg_X_1.obj"  scale="1 1 1" />
+    <mesh  scale="1 1 1"  filename="leg_X_1.obj" />
    </geometry>
   </collision>
  </link>
  <joint  name="joint_0_0"  type="continuous" >
   <parent  link="base_link" />
   <child  link="link_0_0" />
-  <origin  rpy="0, 0, 0"  xyz="0.35, -0.3, 0" />
+  <origin  xyz="0.35, -0.3, 0"  rpy="0, 0, 0" />
   <axis  xyz="1, 0, 0" />
  </joint>
  <joint  name="joint_0_1"  type="continuous" >
@@ -280,7 +280,7 @@
  <joint  name="joint_1_0"  type="continuous" >
   <parent  link="base_link" />
   <child  link="link_1_0" />
-  <origin  rpy="0, 0, 0"  xyz="0.35, 0.3, 0" />
+  <origin  xyz="0.35, 0.3, 0"  rpy="0, 0, 0" />
   <axis  xyz="1, 0, 0" />
  </joint>
  <joint  name="joint_1_1"  type="continuous" >
@@ -298,7 +298,7 @@
  <joint  name="joint_2_0"  type="continuous" >
   <parent  link="base_link" />
   <child  link="link_2_0" />
-  <origin  rpy="0, 0, 3.14159"  xyz="-0.35, 0.3, 0" />
+  <origin  xyz="-0.35, 0.3, 0"  rpy="0, 0, 3.14159" />
   <axis  xyz="1, 0, 0" />
  </joint>
  <joint  name="joint_2_1"  type="continuous" >
@@ -316,7 +316,7 @@
  <joint  name="joint_3_0"  type="continuous" >
   <parent  link="base_link" />
   <child  link="link_3_0" />
-  <origin  rpy="0, 0, 3.14159"  xyz="-0.35, -0.3, 0" />
+  <origin  xyz="-0.35, -0.3, 0"  rpy="0, 0, 3.14159" />
   <axis  xyz="1, 0, 0" />
  </joint>
  <joint  name="joint_3_1"  type="continuous" >

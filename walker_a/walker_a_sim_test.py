@@ -4,7 +4,9 @@ import gym
 
 env = gym.make('WalkerA-v0')
 
-env.reset()
+obs = env.reset()
+print(obs)
 
 while 1:
-    env.step([1])
+
+    obs, reward, _, _ = env.step([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])

@@ -1,11 +1,20 @@
 from gym.envs.registration import register
 
 register(
-    id='WalkerA-v0',
+    id='WalkerA-render-v0',
     entry_point='walker_a:WalkerA',
     max_episode_steps=1000,
     reward_threshold=950.0,
     kwargs={'renders': True},
+    tags={ "pg_complexity": 1*1000000 },
+    )
+
+register(
+    id='WalkerA-v0',
+    entry_point='walker_a:WalkerA',
+    max_episode_steps=1000,
+    reward_threshold=950.0,
+    kwargs={'renders': False},
     tags={ "pg_complexity": 1*1000000 },
     )
 

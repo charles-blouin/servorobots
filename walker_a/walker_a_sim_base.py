@@ -24,16 +24,18 @@ class WalkerASim:
 
         self.time = 0
         self.last_vel = [0, 0, 0]
-        self.max_voltage = 7.2
-        self.r_battery = 0.4
+        self.limit = np.asarray([0.1, 0.4, 0.4,
+                      0.1, 0.4, 0.4,
+                      0.1, 0.4, 0.4,
+                      0.1, 0.4, 0.4])
         self.include_gyro = False
         self.include_joint_velocity = True
         self.observation_size = 3*self.include_gyro + 12 + self.include_joint_velocity * 12
         high_obs = np.ones(self.observation_size)
         self.observation_space = spaces.Box(high_obs * -1, high_obs * 1)
-
+        self.number_of_joints = 12
         self.action_size = 12
-        act_high = np.asarray([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+        act_high = np.asarray([1 for i in range(self.number_of_joints)])
         self.action_space = spaces.Box(-act_high, act_high)
 
     def local_pose(self, linkID, timestep):
@@ -62,22 +64,26 @@ class WalkerASim:
         time.sleep(self.sim_timestep * self.action_every_x_timestep)
 
     def step(self, action):
-
+        # action = np.multiply(action, self.limit)
         if self._renders:
             time.sleep(self.sim_timestep * self.action_every_x_timestep)
+
         # Obtain local pose
         local_vel, local_rot_vel, acc = self.local_pose(0, self.sim_timestep * self.action_every_x_timestep)
 
         p.setJointMotorControlArray(self.robot, range(p.getNumJoints(self.robot)), p.POSITION_CONTROL,
-                                    targetPositions=[0.1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+                                    targetPositions=action,
+                                    forces=[50 for i in range(self.number_of_joints)])
         for i in range(0, self.action_every_x_timestep):
             p.stepSimulation()
             self.time += self.sim_timestep
 
         jointPosition, jointVelocity = self.getJointStates(self.robot)
-        state = jointPosition
+        if self.include_joint_velocity:
+            state = jointPosition.extend(jointVelocity)
+        else:
+            state = jointPosition
         # state_t_0 = np.concatenate((local_rot_vel, acc))
-
         #### Check for contact ####
         contacts = p.getContactPoints(bodyA=self.robot, linkIndexA=-1)
         if contacts != ():
@@ -85,7 +91,7 @@ class WalkerASim:
         else:
             contact = 0
         position, orientation = p.getBasePositionAndOrientation(self.robot)
-        return state, contact, self.time, position, orientation, local_vel
+        return jointPosition, contact, self.time, position, orientation, local_vel, local_rot_vel
 
     def reset(self, x=0, y=0, z=0.05, q1=0, q2=0, q3=0, q4=1, gravity=-9.81,
               ML_R=21.5, ML_Kv=10.5, ML_Kvis=0.0005,
@@ -103,7 +109,7 @@ class WalkerASim:
         local_vel, local_rot_vel, acc = self.local_pose(0, self.sim_timestep * self.action_every_x_timestep)
         jointPosition, jointVelocity = self.getJointStates(self.robot)
         if self.include_joint_velocity:
-            state = np.concatenate((np.asarray(jointPosition), np.asarray(jointVelocity)))
+            state = jointPosition.extend(jointVelocity)
         else:
             state = jointPosition
 
