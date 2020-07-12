@@ -59,5 +59,5 @@ if __name__ == '__main__':
         model.tensorboard_log = log_dir
         model.learning_rate = stable_baselines.common.schedules.LinearSchedule(1.0, 0.00025, initial_p=0.00025  ).value
 
-    model.learn(total_timesteps=2000000, reset_num_timesteps=False, callback=callback)
+    model.learn(total_timesteps=10000000, reset_num_timesteps=False, callback=callback)
     model.save(log_dir + str(id+1))

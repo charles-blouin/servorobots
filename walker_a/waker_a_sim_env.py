@@ -32,7 +32,7 @@ class WalkerA(gym.Env):
             done = 1
         else:
             done = 0
-        reward = local_vel[0]
+        reward = local_vel[0] * position[2] * position[2]
         return state, reward, done, {}
 
     def reset(self, x=0, y=0, z=0.05, q1=0, q2=0, q3=0, q4=1, gravity = -9.81,

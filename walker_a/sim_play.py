@@ -39,7 +39,7 @@ if __name__ == '__main__':
     open(file + "/converted_model.tflite", "wb").write(tflite_model)
 
     # multiprocess environment
-    n_cpu = 2
+    n_cpu = 1
     # 'Balboa-balance-ctrl-render-v1'
     env = SubprocVecEnv([lambda: gym.make('WalkerA-v0', renders=True) for i in range(n_cpu)])
     obs = env.reset()
