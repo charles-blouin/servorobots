@@ -1,0 +1,74 @@
+<?xml version="1.0" ?><robot name="physics">
+    <link name="baseLink">
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="1"/>
+            <inertia ixx="0.1" ixy="0" ixz="0" iyy="0.1" iyz="0" izz="0.1"/>
+        </inertial>
+
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <box size="0.1 0.1 0.1"/>
+            </geometry>
+            <material name="white">
+                <color rgba="1 1 1 1"/>
+            </material>
+        </visual>
+    </link>
+
+    <joint name="joint_0" type="continuous">
+        <origin rpy="0 0 0" xyz="0, -0.05, 0"/>
+        <parent link="baseLink"/>
+        <child link="arm_0"/>
+        <axis xyz="0 1 0"/>
+        <limit effort="300" lower="-20" upper="20" velocity="100"/>
+        <dynamics damping="0.001" friction="0.0"/>
+    </joint>
+
+    <link name="arm_0">
+        <inertial>
+            <origin rpy="0 0 0" xyz="0, 0, 0.2"/>
+            <mass value="0.01875"/>
+            <inertia ixx="0.00025" ixy="0" ixz="0" iyy="0.00025" iyz="0" izz="0.00000390625"/>
+        </inertial>
+
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0.1"/>
+            <geometry>
+                <box size="0.025 0.0075 0.2"/>
+            </geometry>
+            <material name="white">
+                <color rgba="1 1 1 1"/>
+            </material>
+        </visual>
+    </link>
+
+    <joint name="joint_1" type="continuous">
+        <origin rpy="0 0 0" xyz="0, 0, 0.2"/>
+        <parent link="arm_0"/>
+        <child link="arm_1"/>
+        <axis xyz="0 1 0"/>
+        <limit effort="300" lower="-20" upper="20" velocity="100"/>
+        <dynamics damping="0.001" friction="0.0"/>
+    </joint>
+
+    <link name="arm_1">
+        <inertial>
+            <origin rpy="0 0 0" xyz="0.001, 0, 0.1"/>
+            <mass value="0.01875"/>
+            <inertia ixx="0.00025" ixy="0" ixz="0" iyy="0.00025" iyz="0" izz="0.00000390625"/>
+        </inertial>
+
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0.1"/>
+            <geometry>
+                <box size="0.025 0.0075 0.2"/>
+            </geometry>
+            <material name="white">
+                <color rgba="1 1 1 1"/>
+            </material>
+        </visual>
+    </link>
+
+</robot>
