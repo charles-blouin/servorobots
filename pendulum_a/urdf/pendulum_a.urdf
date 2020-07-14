@@ -56,8 +56,8 @@
     <link name="arm_1">
         <inertial>
             <origin rpy="0 0 0" xyz="0.001, 0, 0.1"/>
-            <mass value="0.01875"/>
-            <inertia ixx="0.00025" ixy="0" ixz="0" iyy="0.00025" iyz="0" izz="0.00000390625"/>
+            <mass value="0.0375"/>
+            <inertia ixx="0.00025" ixy="0" ixz="0" iyy="0.0005" iyz="0" izz="0.0000078125"/>
         </inertial>
 
         <visual>

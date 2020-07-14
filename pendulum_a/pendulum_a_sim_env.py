@@ -28,15 +28,20 @@ class PendulumA(gym.Env):
         state, self.time = self.sim.step(action)
         done = 0
         # print(state)
-        if (state[0] > -1) and (state[0] < 1) and (state[1] > -1) and (state[1] < 1) \
-                           and (state[3] > -5) and (state[3] < 5):
+        if (state[0] > -1) and (state[0] < 1) and (state[1] > -1) and (state[1] < 1):
             # reward = 10-state[1]**2
-            reward = 1
+            reward = 1  # (3 - np.absolute((state[0])) - np.absolute(state[1])) # More points if closer to straigth
+            # More points if going slow
+            # + min( np.absolute(state[3]), 4) + \
+            #  min(1 / np.absolute(state[2]), 4)
+            reward -= np.absolute(action[0])
+            # print(action)
+            # print(reward)
         else:
             reward = 0
-        if (state[0] > 5) and (state[0] < -5) and (state[1] > 5) and (state[1] < 5):
+        if (state[0] > 20) or (state[0] < -20) or (state[1] > 20) or (state[1] < -20):
             done = 1
-        #print(reward)
+        # print(state)
         return state, reward, done, {}
 
     def reset(self):

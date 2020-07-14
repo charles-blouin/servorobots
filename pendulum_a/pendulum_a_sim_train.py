@@ -41,21 +41,21 @@ if __name__ == '__main__':
     env = SubprocVecEnv([lambda: gym.make('PendulumA-v0') for i in range(n_cpu)])
 
     # Define policy
-    policy_kwargs = dict(act_fun=tf.nn.tanh, net_arch=[32, 32])
+    policy_kwargs = dict(act_fun=tf.nn.tanh, net_arch=[16, 16])
     print("Tensorflow ########################################")
     sess = tf.Session(config=tf.ConfigProto(log_device_placement=True))
     # Train
     if args.algo == "ppo2":
         if args.load_id == None:
             # tensorboard_log=log_dir
-            model = PPO2("MlpPolicy", env, policy_kwargs=policy_kwargs, verbose=1, nminibatches=1,
-                         n_steps=48, lam=0.95, gamma=0.99, noptepochs=10,
+            model = PPO2("MlpPolicy", env, policy_kwargs=policy_kwargs, verbose=1, nminibatches=12,
+                         n_steps=96, lam=0.95, gamma=0.99, noptepochs=10,
                          ent_coef=0.0, cliprange=0.2)
         else:
             print("Loading model: " + str(args.load_id))
             model = PPO2.load(log_dir + str(args.load_id) + ".zip", env=env)
         model.tensorboard_log = log_dir
-        model.learning_rate = stable_baselines.common.schedules.LinearSchedule(1.0, 0.001, initial_p=0.0001).value
+        model.learning_rate = stable_baselines.common.schedules.LinearSchedule(1.0, 0.0005, initial_p=0.0002).value
         # model.cliprange = stable_baselines.common.schedules.LinearSchedule(1.0, 0.2, initial_p=0).value
 
     model.learn(total_timesteps=1000000, reset_num_timesteps=False, callback=callback)
