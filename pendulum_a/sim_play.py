@@ -1,24 +1,30 @@
 import gym
 from stable_baselines.common.vec_env import SubprocVecEnv
 from stable_baselines import PPO2
+from stable_baselines import ACKTR
 import tensorflow as tf
 import shutil
 import os
 import balboa.utils
 import time
-# python -m pendulum_a.sim_play
+# python -m pendulum_a.sim_play -ppo -i 3
 import argparse
 ap = argparse.ArgumentParser(description='Play learning')
 ap.add_argument("-i", "--load_id", default=None, help="Start from test id")
+ap.add_argument("-a", "--algo", default='ppo', help="Start from test id")
 args = ap.parse_args()
 
 log_dir = "pendulum_a/results/"
+if args.algo == 'ppo':
+    result_string = 'PPO_'
+elif args.algo == 'acktr':
+    result_string = 'ACKTR_'
 
 if args.load_id == None:
     id = str(balboa.utils.tensorboard_latest_directory_number(log_dir))
 else:
     id = str(args.load_id)
-file = "pendulum_a/results/" + id
+file = "pendulum_a/results/model_" + result_string + id + '.zip'
 
 def generate_checkpoint_from_model(model, checkpoint_name):
     with model.graph.as_default():
@@ -31,12 +37,16 @@ def generate_checkpoint_from_model(model, checkpoint_name):
 if __name__ == '__main__':
     if os.path.isdir(file):
         shutil.rmtree(file)
-    model = PPO2.load(file)
+    if args.algo == 'ppo':
+        model = PPO2.load(file)
+    elif args.algo == 'acktr':
+        model = ACKTR.load(file)
 
-    generate_checkpoint_from_model(model, file)
-    converter = tf.lite.TFLiteConverter.from_saved_model(file)
-    tflite_model = converter.convert()
-    open(file + "/converted_model.tflite", "wb").write(tflite_model)
+
+    # generate_checkpoint_from_model(model, file)
+    # converter = tf.lite.TFLiteConverter.from_saved_model(file)
+    # tflite_model = converter.convert()
+    # open(file + "/converted_model.tflite", "wb").write(tflite_model)
 
     # multiprocess environment
     n_cpu = 1

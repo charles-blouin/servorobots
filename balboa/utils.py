@@ -1,11 +1,15 @@
 from inputs import devices
 import inputs
 import os
-def tensorboard_latest_directory_number( path ):
+def tensorboard_latest_directory_number( path , str='PPO2_'):
     number = 0
-    for filename in os.listdir(path):
-        if filename.find('PPO2_') == 0:
-            filename_number = int(filename.replace('PPO2_', ''))
+    print(os.listdir(path))
+    # List all folders
+    for foldername in os.listdir(path):
+        # If the folder name starts with the string (i.e. PPO_)
+        if foldername.find(str) == 0:
+            filename_number = int(foldername.replace(str, ''))
+            print(filename_number)
             if number < filename_number:
                 number = filename_number
     return number

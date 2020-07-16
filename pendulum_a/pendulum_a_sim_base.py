@@ -5,12 +5,14 @@ import pybullet as p
 from gym import spaces
 import time
 from servorobots.tools.quaternion import qt
+import random
+import math
 
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 
 
 class PendulumASim:
-    def __init__(self, renders=False, sim_timestep=0.0025, action_every_x_timestep=4):
+    def __init__(self, renders=False, sim_timestep=0.0025, action_every_x_timestep=8):
         self._renders = renders
         self.p = p
         if (renders):
@@ -69,7 +71,8 @@ class PendulumASim:
         # Obtain local pose
         # local_vel, local_rot_vel, acc = self.local_pose(0, self.sim_timestep * self.action_every_x_timestep)
 
-        p.setJointMotorControlArray(self.robot, range(p.getNumJoints(self.robot)), p.VELOCITY_CONTROL, targetVelocities = [action[0]*10, 0],
+        p.setJointMotorControlArray(self.robot, range(p.getNumJoints(self.robot)), p.VELOCITY_CONTROL,
+                                    targetVelocities = [action[0] * 20, 0],
                                     forces=[0.25, 0]) # Assuming the torque is 0.26 Ncm
         for i in range(0, self.action_every_x_timestep):
             p.stepSimulation()
@@ -96,13 +99,25 @@ class PendulumASim:
                                 useFixedBase=True,
         flags=p.URDF_USE_INERTIA_FROM_FILE & p.URDF_USE_SELF_COLLISION_EXCLUDE_PARENT)
 
+        rand_vel = random.randint(0, 20)
+        # To make the environment harder
+        if rand_vel < 15:
+            for i in range(10):
+                p.setJointMotorControlArray(self.robot, range(p.getNumJoints(self.robot)), p.VELOCITY_CONTROL,
+                                            targetVelocities=[rand_vel, rand_vel],
+                                            forces=[0.25, 0])
+                p.stepSimulation()
+
 
         local_vel, local_rot_vel, acc = self.local_pose(0, self.sim_timestep * self.action_every_x_timestep)
         jointPosition, jointVelocity = self.getJointStates(self.robot)
+        # jointPosition = [(jointPosition[0] + 1.570796) % 3.14159,
+         #                (1.570796 + jointPosition[1]) % 3.14159]
         if self.include_joint_velocity:
             state = jointPosition.extend(jointVelocity)
         else:
             state = jointPosition
+        # print(jointPosition)
 
 
         ##### Environment section
