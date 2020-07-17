@@ -30,7 +30,8 @@ class PendulumASim:
                       0.1, 0.4, 0.4])
 
         self.include_joint_velocity = True
-        self.observation_size = 2 * ( 1 + self.include_joint_velocity )
+        self.cos_representation = True
+        self.observation_size = 2 * ( 1 + self.include_joint_velocity + self.cos_representation)
         high_obs = np.ones(self.observation_size)
         self.observation_space = spaces.Box(high_obs * -1, high_obs * 1)
         self.number_of_joints = 2
@@ -63,6 +64,21 @@ class PendulumASim:
     def render(self, mode='human'):
         time.sleep(self.sim_timestep * self.action_every_x_timestep)
 
+    def get_obs(self):
+        jointPosition, jointVelocity = self.getJointStates(self.robot)
+
+        if self.cos_representation:
+            jointPosition = [math.sin(jointPosition[0]), math.cos(jointPosition[0]),
+                             math.sin(jointPosition[1]), math.cos(jointPosition[1])]
+
+        if self.include_joint_velocity:
+            jointPosition.extend(jointVelocity)
+            obs = jointPosition
+        else:
+            obs = jointPosition
+        return obs
+
+
     def step(self, action):
         # action = np.multiply(action, self.limit)
         if self._renders:
@@ -78,16 +94,9 @@ class PendulumASim:
             p.stepSimulation()
             self.time += self.sim_timestep
 
-        jointPosition, jointVelocity = self.getJointStates(self.robot)
+        obs = self.get_obs()
 
-        if self.include_joint_velocity:
-            jointPosition.extend(jointVelocity)
-            state = jointPosition
-        else:
-            state = jointPosition
-        # state_t_0 = np.concatenate((local_rot_vel, acc))
-
-        return state, self.time
+        return obs, self.time
 
     def reset(self, gravity=-9.81):
         p.resetSimulation()
@@ -110,16 +119,9 @@ class PendulumASim:
 
 
         local_vel, local_rot_vel, acc = self.local_pose(0, self.sim_timestep * self.action_every_x_timestep)
-        jointPosition, jointVelocity = self.getJointStates(self.robot)
-        # jointPosition = [(jointPosition[0] + 1.570796) % 3.14159,
-         #                (1.570796 + jointPosition[1]) % 3.14159]
-        if self.include_joint_velocity:
-            state = jointPosition.extend(jointVelocity)
-        else:
-            state = jointPosition
-        # print(jointPosition)
+        obs = self.get_obs()
 
 
         ##### Environment section
 
-        return jointPosition
+        return obs

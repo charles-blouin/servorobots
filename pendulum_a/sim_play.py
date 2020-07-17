@@ -7,7 +7,7 @@ import shutil
 import os
 import balboa.utils
 import time
-# python -m pendulum_a.sim_play -ppo -i 3
+# python -m pendulum_a.sim_play -a ppo -i 3
 import argparse
 ap = argparse.ArgumentParser(description='Play learning')
 ap.add_argument("-i", "--load_id", default=None, help="Start from test id")

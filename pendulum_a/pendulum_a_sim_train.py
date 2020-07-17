@@ -59,7 +59,7 @@ if __name__ == '__main__':
         model.tensorboard_log = log_dir
         model.learning_rate = stable_baselines.common.schedules.LinearSchedule(1.0, 0.00025, initial_p=0.00024).value
         # model.cliprange = stable_baselines.common.schedules.LinearSchedule(1.0, 0.2, initial_p=0).value
-        model.learn(total_timesteps=2000000, reset_num_timesteps=False, callback=callback)
+        model.learn(total_timesteps=1000000, reset_num_timesteps=False, callback=callback)
         model.save(log_dir + 'model_PPO_' + str(id+1))
 
     if args.algo == "acktr":
