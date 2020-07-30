@@ -3,7 +3,7 @@ from gym.envs.registration import register
 register(
     id='PendulumA-render-v0',
     entry_point='pendulum_a:PendulumA',
-    max_episode_steps=1000,
+    max_episode_steps=750,
     reward_threshold=950.0,
     kwargs={'renders': True},
     tags={ "pg_complexity": 1*1000000 },
@@ -12,9 +12,18 @@ register(
 register(
     id='PendulumA-v0',
     entry_point='pendulum_a:PendulumA',
-    max_episode_steps=1000,
+    max_episode_steps=750,
     reward_threshold=950.0,
     kwargs={'renders': False},
+    tags={ "pg_complexity": 1*1000000 },
+    )
+
+register(
+    id='PendulumA-eval-v0',
+    entry_point='pendulum_a:PendulumA',
+    max_episode_steps=750,
+    reward_threshold=950.0,
+    kwargs={'renders': False, 'eval': True},
     tags={ "pg_complexity": 1*1000000 },
     )
 

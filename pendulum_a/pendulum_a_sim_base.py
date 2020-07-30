@@ -12,7 +12,7 @@ currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfram
 
 
 class PendulumASim:
-    def __init__(self, renders=False, sim_timestep=0.0025, action_every_x_timestep=8):
+    def __init__(self, renders=False, sim_timestep=0.0025, action_every_x_timestep=4):
         self._renders = renders
         self.p = p
         if (renders):
@@ -24,10 +24,6 @@ class PendulumASim:
 
         self.time = 0
         self.last_vel = [0, 0, 0]
-        self.limit = np.asarray([0.1, 0.4, 0.4,
-                      0.1, 0.4, 0.4,
-                      0.1, 0.4, 0.4,
-                      0.1, 0.4, 0.4])
 
         self.include_joint_velocity = True
         self.cos_representation = True
@@ -88,8 +84,12 @@ class PendulumASim:
         # local_vel, local_rot_vel, acc = self.local_pose(0, self.sim_timestep * self.action_every_x_timestep)
 
         p.setJointMotorControlArray(self.robot, range(p.getNumJoints(self.robot)), p.VELOCITY_CONTROL,
-                                    targetVelocities = [action[0] * 20, 0],
+                                    targetVelocities = [action[0] * 10, 0],
                                     forces=[0.25, 0]) # Assuming the torque is 0.26 Ncm
+
+        # p.setJointMotorControlArray(self.robot, range(p.getNumJoints(self.robot)), p.TORQUE_CONTROL,
+        #                            targetVelocities=[action[0] * 20, 0],
+        #                            forces=[0.25, 0])  # Assuming the torque is 0.26 Ncm
         for i in range(0, self.action_every_x_timestep):
             p.stepSimulation()
             self.time += self.sim_timestep
@@ -111,7 +111,7 @@ class PendulumASim:
         rand_vel = random.randint(0, 20)
         # To make the environment harder
         if rand_vel < 15:
-            for i in range(10):
+            for i in range(20):
                 p.setJointMotorControlArray(self.robot, range(p.getNumJoints(self.robot)), p.VELOCITY_CONTROL,
                                             targetVelocities=[rand_vel, rand_vel],
                                             forces=[0.25, 0])
@@ -120,7 +120,7 @@ class PendulumASim:
 
         local_vel, local_rot_vel, acc = self.local_pose(0, self.sim_timestep * self.action_every_x_timestep)
         obs = self.get_obs()
-
+        # p.setJointMotorControlArray(self.robot, range(p.getNumJoints(self.robot)), p.VELOCITY_CONTROL, force=[0, 0])
 
         ##### Environment section
 

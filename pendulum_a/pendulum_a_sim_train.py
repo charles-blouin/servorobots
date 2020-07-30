@@ -50,14 +50,14 @@ if __name__ == '__main__':
         id = balboa.utils.tensorboard_latest_directory_number(log_dir, 'PPO2_')
         if args.load_id == None:
             # tensorboard_log=log_dir
-            model = PPO2("MlpPolicy", env, policy_kwargs=policy_kwargs, verbose=1, nminibatches=1,
-                         n_steps=48, lam=0.94, gamma=0.98, noptepochs=20,
-                         ent_coef=0.0, cliprange=0.1)
+            model = PPO2("MlpPolicy", env, policy_kwargs=policy_kwargs, verbose=1, nminibatches=16,
+                         n_steps=192, lam=0.94, gamma=0.98, noptepochs=5,
+                         ent_coef=0.0, cliprange=0.2)
         else:
             print("Loading model: " + str(args.load_id))
-            model = PPO2.load(log_dir + 'PPO_' + str(args.load_id) + ".zip", env=env)
+            model = PPO2.load(log_dir + 'model_PPO_' + str(args.load_id) + ".zip", env=env)
         model.tensorboard_log = log_dir
-        model.learning_rate = stable_baselines.common.schedules.LinearSchedule(1.0, 0.00025, initial_p=0.00024).value
+        model.learning_rate = stable_baselines.common.schedules.LinearSchedule(1.0, 0.00025, initial_p=0.00001).value
         # model.cliprange = stable_baselines.common.schedules.LinearSchedule(1.0, 0.2, initial_p=0).value
         model.learn(total_timesteps=1000000, reset_num_timesteps=False, callback=callback)
         model.save(log_dir + 'model_PPO_' + str(id+1))

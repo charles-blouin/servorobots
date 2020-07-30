@@ -16,7 +16,7 @@ args = ap.parse_args()
 
 log_dir = "pendulum_a/results/"
 if args.algo == 'ppo':
-    result_string = 'PPO_'
+    result_string = 'PPO2_'
 elif args.algo == 'acktr':
     result_string = 'ACKTR_'
 
@@ -24,7 +24,7 @@ if args.load_id == None:
     id = str(balboa.utils.tensorboard_latest_directory_number(log_dir))
 else:
     id = str(args.load_id)
-file = "pendulum_a/results/model_" + result_string + id + '.zip'
+file = "pendulum_a/results/model_" + result_string + id + '/best_model.zip'
 
 def generate_checkpoint_from_model(model, checkpoint_name):
     with model.graph.as_default():

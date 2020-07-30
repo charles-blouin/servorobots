@@ -8,9 +8,9 @@ import math
 
 
 class PendulumA(gym.Env):
-    def __init__(self, renders=False):
+    def __init__(self, renders=False, eval=False):
         self.renders = renders
-        self.sim = base.PendulumASim(renders=renders)
+        self.sim = base.PendulumASim(renders=renders, eval=eval)
         self.resets = 0
         self.num_timestep = 0
         self.observation_size = self.sim.observation_size
@@ -28,26 +28,41 @@ class PendulumA(gym.Env):
         action = np.clip(action, self.act_low, self.act_high)
         state, self.time = self.sim.step(action)
         done = 0
-        # print(state)
-        if self.sim.cos_representation:
+
+        if eval:
             if state[1] > 0 and state[3] > 0:
-                reward = state[1] + state[3]
-                print(reward)
+                reward = 1
             else:
                 reward = 0
 
         else:
-            if (state[0] > -1) and (state[0] < 1) and (state[1] > -1) and (state[1] < 1)\
-                    and (state[2] > -10) and (state[2] < 10) and (state[3] > -10) and (state[3] < 10):
-                # reward = 10-state[1]**2
-                reward = 3 - np.absolute(state[0]) - np.absolute(state[1]) # More points if closer to straight
-                reward -= np.absolute(action[0])
+            if self.sim.cos_representation:
+                if state[1] > 0 and state[3] > 0:
+                    reward = state[1] + state[3]
+
+                    # Penalize a solution with continuous rotation
+                    velocity_link_1 = state [4]
+                    velocity_link_2 = state[5]
+                    # reward = reward * (20 - abs(velocity_link_1) - abs(velocity_link_2)) / 20
+                    # print(reward)
+                else:
+                    reward = 0
+
             else:
-                reward = 0
-            if (state[0] > 10) or (state[0] < -10) or (state[1] > 20) or (state[1] < -20):
-                done = 1
+                if (state[0] > -1) and (state[0] < 1) and (state[1] > -1) and (state[1] < 1)\
+                        and (state[2] > -10) and (state[2] < 10) and (state[3] > -10) and (state[3] < 10):
+                    # reward = 10-state[1]**2
+                    reward = 3 - np.absolute(state[0]) - np.absolute(state[1]) # More points if closer to straight
+                    reward -= np.absolute(action[0])
+                else:
+                    reward = 0
+                if (state[0] > 10) or (state[0] < -10) or (state[1] > 20) or (state[1] < -20):
+                    done = 1
 
 
+        # Normalizing
+        state[4] = state[4]/10
+        state[5] = state[5]/10
         # print(state)
         return state, reward, done, {}
 
