@@ -23,7 +23,7 @@ register(
     entry_point='pendulum_a:PendulumA',
     max_episode_steps=750,
     reward_threshold=950.0,
-    kwargs={'renders': False, 'eval': True},
+    kwargs={'renders': False, 'evaluate': True},
     tags={ "pg_complexity": 1*1000000 },
     )
 

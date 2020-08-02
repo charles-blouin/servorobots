@@ -5,6 +5,7 @@ import balboa.utils
 import stable_baselines
 import argparse
 from stable_baselines.common.callbacks import BaseCallback, EvalCallback, CheckpointCallback
+import numpy as np
 import os
 
 
@@ -53,8 +54,32 @@ class TBCallback(BaseCallback):
                                     ])
 
         # self.run_dir = self.locals['writer'].get_logdir()
+        self.locals['writer'].add_summary(summary, 1)
         return True
 
+class EvalCallbackWithTB(EvalCallback):
+    """
+    Custom callback for plotting additional values in tensorboard.
+    """
+
+    def _on_step(self) -> bool:
+        EvalCallback._on_step(self)
+        if self.eval_freq > 0 and self.n_calls % self.eval_freq == 0:
+            print(self.evaluations_timesteps[-1])
+            avg_eval = np.average(self.evaluations_results[-1])
+
+            summary = tf.Summary(value=[tf.Summary.Value(tag='Hparams/evaluation', simple_value=avg_eval,
+                                                         metadata=tf.SummaryMetadata(display_name='evaluation',
+                                                                                     summary_description='Evaluation'))
+                                        ])
+
+            self.locals['writer'].add_summary(summary, self.evaluations_timesteps[-1])
+
+    def _on_training_end(self) -> bool:
+        print(self.evaluations_timesteps)
+        eval_avg = [np.average(i) for i in self.evaluations_results]
+        print(eval_avg)
+        return True
 
 
 if __name__ == '__main__':
@@ -81,8 +106,8 @@ if __name__ == '__main__':
     if args.algo == "ppo2":
         id = balboa.utils.tensorboard_latest_directory_number(log_dir, 'PPO2_')
         print(log_dir + 'PPO2_' + str(id+1))
-        eval_callback = EvalCallback(env_eval, best_model_save_path=log_dir + '/model_PPO2_' + str(id+1),
-                                     log_path=log_dir + '/model_PPO2_' + str(id+1), eval_freq=1000, n_eval_episodes=5,
+        eval_callback = EvalCallbackWithTB(env_eval, best_model_save_path=log_dir + '/model_PPO2_' + str(id+1),
+                                     log_path=log_dir + '/model_PPO2_' + str(id+1), eval_freq=2000, n_eval_episodes=1,
                                      deterministic=True, render=False)
         if args.load_id == None:
             # tensorboard_log=log_dir
@@ -97,6 +122,7 @@ if __name__ == '__main__':
         # model.cliprange = stable_baselines.common.schedules.LinearSchedule(1.0, 0.2, initial_p=0).value
         model.learn(total_timesteps=1000000, reset_num_timesteps=False, callback=[log_hparam_callback, eval_callback])
         model.save(log_dir + '/model_PPO2_' + str(id+1) + '/final')
+
 
 
     if args.algo == "acktr":

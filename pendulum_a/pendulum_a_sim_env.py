@@ -8,9 +8,10 @@ import math
 
 
 class PendulumA(gym.Env):
-    def __init__(self, renders=False, eval=False):
+    def __init__(self, renders=False, evaluate=False):
         self.renders = renders
-        self.sim = base.PendulumASim(renders=renders, eval=eval)
+        self.evaluate = evaluate
+        self.sim = base.PendulumASim(renders=renders, evaluate=evaluate)
         self.resets = 0
         self.num_timestep = 0
         self.observation_size = self.sim.observation_size
@@ -29,7 +30,7 @@ class PendulumA(gym.Env):
         state, self.time = self.sim.step(action)
         done = 0
 
-        if eval:
+        if self.evaluate:
             if state[1] > 0 and state[3] > 0:
                 reward = 1
             else:

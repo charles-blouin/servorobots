@@ -12,8 +12,9 @@ currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfram
 
 
 class PendulumASim:
-    def __init__(self, renders=False, sim_timestep=0.0025, action_every_x_timestep=4):
+    def __init__(self, renders=False, evaluate=False, sim_timestep=0.0025, action_every_x_timestep=4):
         self._renders = renders
+        self.evaluate = evaluate
         self.p = p
         if (renders):
             p.connect(p.GUI)
@@ -108,7 +109,10 @@ class PendulumASim:
                                 useFixedBase=True,
         flags=p.URDF_USE_INERTIA_FROM_FILE & p.URDF_USE_SELF_COLLISION_EXCLUDE_PARENT)
 
-        rand_vel = random.randint(0, 20)
+        if self.evaluate:
+            rand_vel = 10
+        else:
+            rand_vel = random.randint(0, 20)
         # To make the environment harder
         if rand_vel < 15:
             for i in range(20):

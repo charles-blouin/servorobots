@@ -11,7 +11,8 @@ import time
 import argparse
 ap = argparse.ArgumentParser(description='Play learning')
 ap.add_argument("-i", "--load_id", default=None, help="Start from test id")
-ap.add_argument("-a", "--algo", default='ppo', help="Start from test id")
+ap.add_argument("-a", "--algo", default='ppo', help="ppo or acktr")
+ap.add_argument("-b", "--best", default=False, help="Play the best NN eval instead of the final")
 args = ap.parse_args()
 
 log_dir = "pendulum_a/results/"
@@ -24,7 +25,12 @@ if args.load_id == None:
     id = str(balboa.utils.tensorboard_latest_directory_number(log_dir))
 else:
     id = str(args.load_id)
-file = "pendulum_a/results/model_" + result_string + id + '/best_model.zip'
+
+if args.best:
+    file = "pendulum_a/results/model_" + result_string + id + '/best_model.zip'
+else:
+    file = "pendulum_a/results/model_" + result_string + id + '/final.zip'
+
 
 def generate_checkpoint_from_model(model, checkpoint_name):
     with model.graph.as_default():
